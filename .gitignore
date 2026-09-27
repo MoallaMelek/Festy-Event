@@ -1,0 +1,48 @@
+# Python
+*.py[cod]
+*$py.class
+*.so
+.Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment variables
+.env
+.env.local
+
+# Migrations (optionnel - certains préfèrent les inclure)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+.venv/
+
+# Local AI collaboration files (not part of the project)
+AI_TEAM.md
+AGENTS.md
+.ai/

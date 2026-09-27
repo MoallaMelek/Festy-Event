@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Recommandations - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Retour à l'événement
+            </a>
+            <h2><i class="fas fa-star"></i> Recommandations - {{ event.title }}</h2>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h1 style="color: #ffc107; font-size: 3rem;">{{ average_rating }}</h1>
+                    <div class="stars" style="font-size: 1.5rem; color: #ffc107;">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= average_rating %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="text-muted mb-0">{{ total_count }} avis</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>Distribution des notes</h5>
+                    {% for i in "54321" %}
+                        <div class="d-flex align-items-center mb-2">
+                            <span style="width: 40px;">{{ i }}★</span>
+                            <div class="progress flex-grow-1 mx-2" style="height: 20px;">
+                                <div class="progress-bar bg-warning" role="progressbar" 
+                                     style="width: 50%"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres et tri -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="rating" class="form-label">Filtrer par note</label>
+                    <select name="rating" id="rating" class="form-select">
+                        <option value="">Toutes les notes</option>
+                        {% for i in "54321" %}
+                            <option value="{{ i }}" {% if rating_filter == i %}selected{% endif %}>
+                                {{ i }} étoile{% if i != "1" %}s{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="sort" class="form-label">Trier par</label>
+                    <select name="sort" id="sort" class="form-select">
+                        <option value="recent" {% if sort_by == "recent" %}selected{% endif %}>Plus récents</option>
+                        <option value="helpful" {% if sort_by == "helpful" %}selected{% endif %}>Plus utiles</option>
+                        <option value="rating_high" {% if sort_by == "rating_high" %}selected{% endif %}>Note la plus élevée</option>
+                        <option value="rating_low" {% if sort_by == "rating_low" %}selected{% endif %}>Note la plus basse</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Appliquer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des recommandations -->
+    <div class="row">
+        {% for recommendation in recommendations %}
+            <div class="col-12 mb-4">
+                <div class="card shadow-sm {% if recommendation.is_featured %}border-warning{% endif %}">
+                    {% if recommendation.is_featured %}
+                        <div class="card-header bg-warning text-dark">
+                            <i class="fas fa-star"></i> <strong>Recommandation mise en avant</strong>
+                        </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="mb-1">{{ recommendation.title }}</h5>
+                                <div class="stars mb-2" style="color: #ffc107; font-size: 1.2rem;">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= recommendation.rating %}★{% else %}☆{% endif %}
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted">
+                                    Par <strong>{{ recommendation.user.get_full_name|default:recommendation.user.username }}</strong>
+                                    le {{ recommendation.created_at|date:"d/m/Y" }}
+                                </small>
+                            </div>
+                            {% if recommendation.would_recommend %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-thumbs-up"></i> Recommandé
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <p>{{ recommendation.comment }}</p>
+
+                        <!-- Critères détaillés -->
+                        <div class="row text-center mb-3">
+                            <div class="col-3">
+                                <small class="text-muted">Organisation</small><br>
+                                <strong>{{ recommendation.organization_rating }}★</strong>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-muted">Ambiance</small><br>
+                                <strong>{{ recommendation.ambiance_rating }}★</strong>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-muted">Qualité/Prix</small><br>
+                                <strong>{{ recommendation.value_rating }}★</strong>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-muted">Lieu</small><br>
+                                <strong>{{ recommendation.venue_rating }}★</strong>
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        {% if recommendation.tags %}
+                            <div class="mb-3">
+                                {% for tag in recommendation.get_tags_list %}
+                                    <span class="badge bg-secondary">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Photo -->
+                        {% if recommendation.photo_url %}
+                            <div class="mb-3">
+                                <img src="{{ recommendation.photo_url }}" alt="Photo" class="img-fluid rounded" style="max-height: 300px;">
+                            </div>
+                        {% endif %}
+
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{% url 'recommendation_helpful' recommendation.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-thumbs-up"></i> Utile ({{ recommendation.helpful_count }})
+                                </a>
+                            </div>
+                            {% if user == recommendation.user %}
+                                <div>
+                                    <a href="{% url 'recommendation_update' recommendation.id %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Modifier
+                                    </a>
+                                    <a href="{% url 'recommendation_delete' recommendation.id %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Réponse admin -->
+                        {% if recommendation.admin_response %}
+                            <div class="alert alert-info mt-3 mb-0">
+                                <strong><i class="fas fa-reply"></i> Réponse de l'équipe:</strong><br>
+                                {{ recommendation.admin_response }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i> Aucune recommandation pour le moment.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if recommendations.has_other_pages %}
+        <nav aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+                {% if recommendations.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ recommendations.previous_page_number }}&rating={{ rating_filter }}&sort={{ sort_by }}">Précédent</a>
+                    </li>
+                {% endif %}
+                
+                {% for num in recommendations.paginator.page_range %}
+                    <li class="page-item {% if recommendations.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}&rating={{ rating_filter }}&sort={{ sort_by }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+                
+                {% if recommendations.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ recommendations.next_page_number }}&rating={{ rating_filter }}&sort={{ sort_by }}">Suivant</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

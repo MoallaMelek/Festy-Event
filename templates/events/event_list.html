@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}Événements - Festy Event{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1><i class="fas fa-calendar-alt"></i> Tous les événements</h1>
+        <p style="color: var(--text-gray); margin-bottom: 0;">Découvrez et réservez votre place pour les meilleurs événements</p>
+    </div>
+    
+    {% if user.is_staff %}
+    <a href="{% url 'event_create' %}" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-plus-circle"></i> Créer un événement
+    </a>
+    {% endif %}
+</div>
+
+<!-- Barre de recherche et tri -->
+<div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 300px;">
+        <input 
+            type="text" 
+            id="search-input" 
+            class="form-control" 
+            placeholder="Rechercher un événement par titre..."
+            value="{{ search_query }}"
+        >
+    </div>
+    <div style="min-width: 200px;">
+        <select id="sort-select" class="form-control">
+            <option value="">Trier par...</option>
+            <option value="date-asc" {% if sort_by == 'date-asc' %}selected{% endif %}>Date (plus proche)</option>
+            <option value="date-desc" {% if sort_by == 'date-desc' %}selected{% endif %}>Date (plus éloigné)</option>
+            <option value="price-asc" {% if sort_by == 'price-asc' %}selected{% endif %}>Prix (croissant)</option>
+            <option value="price-desc" {% if sort_by == 'price-desc' %}selected{% endif %}>Prix (décroissant)</option>
+            <option value="availability" {% if sort_by == 'availability' %}selected{% endif %}>Disponibilité</option>
+        </select>
+    </div>
+</div>
+
+<!-- Filtres par catégorie -->
+<div class="filters">
+    <button class="filter-btn {% if not selected_category %}active{% endif %}" data-category="">
+        Tous
+    </button>
+    {% for category_code, category_name in categories %}
+        <button class="filter-btn {% if selected_category == category_code %}active{% endif %}" data-category="{{ category_code }}">
+            {{ category_name }}
+        </button>
+    {% endfor %}
+</div>
+
+<!-- Compteur de résultats -->
+<p id="results-count" style="color: var(--text-gray); margin: 1rem 0;">
+    <span id="event-count">{{ events.count }}</span> événement(s) trouvé(s)
+</p>
+
+<!-- Liste des événements -->
+<div id="events-container">
+    {% if events %}
+        <div class="card-grid">
+            {% for event in events %}
+                <div class="card event-card" 
+                     data-title="{{ event.title|lower }}" 
+                     data-category="{{ event.category }}"
+                     data-date="{{ event.date|date:'U' }}"
+                     data-price="{{ event.price_per_person }}"
+                     data-availability="{{ event.available_seats }}">
+                    {% if event.image_url %}
+                        <img src="{{ event.image_url }}" alt="{{ event.title }}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 5px; margin-bottom: 1rem;">
+                    {% else %}
+                        <div style="width: 100%; height: 200px; background: linear-gradient(135deg, var(--primary-orange) 0%, #f79256 100%); border-radius: 5px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-header">{{ event.title }}</div>
+                    
+                    <div class="card-body">
+                        <p><strong><i class="fas fa-map-marker-alt"></i> Lieu:</strong> {{ event.location }}</p>
+                        <p><strong><i class="fas fa-calendar"></i> Date:</strong> {{ event.date|date:"d/m/Y à H:i" }}</p>
+                        <p><strong><i class="fas fa-ticket-alt"></i> Places disponibles:</strong> {{ event.available_seats }} / {{ event.capacity }}</p>
+                        <p><strong><i class="fas fa-money-bill-wave"></i> Prix:</strong> {{ event.price_per_person }} TND / personne</p>
+                        <p><strong><i class="fas fa-tag"></i> Catégorie:</strong> <span class="badge badge-primary">{{ event.get_category_display }}</span></p>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                        <a href="{% url 'event_detail' event.id %}" class="btn btn-secondary" style="flex: 1; text-align: center;">
+                            Voir détails
+                        </a>
+                        {% if user.is_authenticated %}
+                            {% if event.is_available %}
+                            <a href="{% url 'reservation_create' event.id %}" class="btn btn-primary" style="flex: 1; text-align: center;">
+                                Réserver
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary" disabled style="flex: 1;">Complet</button>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'users:login' %}" class="btn btn-primary" style="flex: 1; text-align: center;">
+                            Connexion pour réserver
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <div class="empty-state" id="no-results">
+            <h3><i class="fas fa-search"></i> Aucun événement trouvé</h3>
+            <p>Essayez de modifier vos critères de recherche.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// ===== Recherche et Tri des Événements =====
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const sortSelect = document.getElementById('sort-select');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const eventCards = document.querySelectorAll('.event-card');
+    const eventCount = document.getElementById('event-count');
+    const eventsContainer = document.getElementById('events-container');
+    
+    let currentCategory = '{{ selected_category }}';
+    let currentSort = '{{ sort_by }}';
+    
+    // Fonction pour filtrer et trier
+    function filterAndSort() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        let visibleCount = 0;
+        
+        // Convertir NodeList en Array pour pouvoir trier
+        const cardsArray = Array.from(eventCards);
+        
+        // Filtrer par recherche et catégorie
+        cardsArray.forEach(card => {
+            const title = card.dataset.title;
+            const category = card.dataset.category;
+            
+            const matchesSearch = !searchTerm || title.includes(searchTerm);
+            const matchesCategory = !currentCategory || category === currentCategory;
+            
+            if (matchesSearch && matchesCategory) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Trier les cartes visibles
+        const visibleCards = cardsArray.filter(card => card.style.display !== 'none');
+        
+        if (currentSort) {
+            visibleCards.sort((a, b) => {
+                switch(currentSort) {
+                    case 'date-asc':
+                        return parseInt(a.dataset.date) - parseInt(b.dataset.date);
+                    case 'date-desc':
+                        return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+                    case 'price-asc':
+                        return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+                    case 'price-desc':
+                        return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+                    case 'availability':
+                        return parseInt(b.dataset.availability) - parseInt(a.dataset.availability);
+                    default:
+                        return 0;
+                }
+            });
+            
+            // Réorganiser les cartes dans le DOM
+            const cardGrid = document.querySelector('.card-grid');
+            if (cardGrid) {
+                visibleCards.forEach(card => cardGrid.appendChild(card));
+            }
+        }
+        
+        // Mettre à jour le compteur
+        eventCount.textContent = visibleCount;
+        
+        // Afficher/masquer le message "aucun résultat"
+        const noResults = document.getElementById('no-results');
+        const cardGrid = document.querySelector('.card-grid');
+        
+        if (visibleCount === 0) {
+            if (cardGrid) cardGrid.style.display = 'none';
+            if (!noResults) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.id = 'no-results';
+                emptyDiv.className = 'empty-state';
+                emptyDiv.innerHTML = '<h3><i class="fas fa-search"></i> Aucun événement trouvé</h3><p>Essayez de modifier vos critères de recherche.</p>';
+                eventsContainer.appendChild(emptyDiv);
+            } else {
+                noResults.style.display = 'block';
+            }
+        } else {
+            if (cardGrid) cardGrid.style.display = 'grid';
+            if (noResults) noResults.style.display = 'none';
+        }
+    }
+    
+    // Recherche en temps réel
+    searchInput.addEventListener('input', filterAndSort);
+    
+    // Tri
+    sortSelect.addEventListener('change', function() {
+        currentSort = this.value;
+        filterAndSort();
+    });
+    
+    // Filtres par catégorie
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Retirer la classe active de tous les boutons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Ajouter la classe active au bouton cliqué
+            this.classList.add('active');
+            
+            // Mettre à jour la catégorie actuelle
+            currentCategory = this.dataset.category;
+            
+            // Filtrer
+            filterAndSort();
+        });
+    });
+    
+    // Initialiser le tri si un tri est déjà sélectionné
+    if (currentSort) {
+        filterAndSort();
+    }
+});
+</script>
+
+{% endblock %}

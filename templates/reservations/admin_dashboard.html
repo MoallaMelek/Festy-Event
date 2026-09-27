@@ -1,0 +1,748 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Administrateur - Festy Event{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; padding-bottom: 1rem; border-bottom: 2px solid var(--primary-orange);">
+    <div>
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">
+            <i class="fas fa-crown" style="color: var(--primary-orange);"></i> Dashboard Administrateur
+        </h1>
+        <p style="color: var(--text-gray); font-size: 1.1rem; margin: 0;">Vue d'ensemble complète de la plateforme</p>
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{% url 'event_create' %}" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-orange); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600;">
+            <i class="fas fa-plus-circle"></i> Créer un événement
+        </a>
+        <a href="{% url 'event_list' %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; background: var(--secondary-black); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600;">
+            <i class="fas fa-list"></i> Voir tous les événements
+        </a>
+    </div>
+</div>
+
+<style>
+    .admin-dashboard {
+        padding: 2rem 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    
+    .dashboard-header {
+        margin-bottom: 3rem;
+        border-bottom: 2px solid var(--primary-orange);
+        padding-bottom: 1rem;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-header p {
+        color: var(--text-gray);
+        font-size: 1.1rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    
+    .stat-card {
+        background: var(--secondary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 10px;
+        padding: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(255, 107, 53, 0.2);
+    }
+    
+    .stat-card.highlight {
+        border-left: 4px solid var(--primary-orange);
+    }
+    
+    .stat-label {
+        color: var(--text-gray);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--text-white);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-value.revenue {
+        color: var(--primary-orange);
+    }
+    
+    .stat-change {
+        font-size: 0.85rem;
+        color: var(--success-green);
+    }
+    
+    .stat-change.negative {
+        color: var(--error-red);
+    }
+    
+    .chart-container {
+        background: var(--secondary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        height: 400px;
+    }
+    
+    .chart-container canvas {
+        max-height: 300px !important;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .chart-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text-white);
+    }
+    
+    .chart-subtitle {
+        color: var(--text-gray);
+        font-size: 0.9rem;
+    }
+    
+    .charts-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .table-container {
+        background: var(--secondary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        overflow-x: auto;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th {
+        background: var(--primary-black);
+        color: var(--text-gray);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        border-bottom: 2px solid var(--border-gray);
+    }
+    
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-gray);
+        color: var(--text-white);
+    }
+    
+    .data-table tr:hover {
+        background: var(--primary-black);
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .badge.success {
+        background: rgba(76, 175, 80, 0.2);
+        color: var(--success-green);
+    }
+    
+    .badge.danger {
+        background: rgba(244, 67, 54, 0.2);
+        color: var(--error-red);
+    }
+    
+    .badge.warning {
+        background: rgba(255, 152, 0, 0.2);
+        color: var(--warning-yellow);
+    }
+    
+    .badge.info {
+        background: rgba(33, 150, 243, 0.2);
+        color: #2196F3;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: var(--primary-black);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: var(--primary-orange);
+        transition: width 1s ease;
+    }
+    
+    .event-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-gray);
+    }
+    
+    .event-item:last-child {
+        border-bottom: none;
+    }
+    
+    .event-info h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-white);
+    }
+    
+    .event-info p {
+        margin: 0;
+        color: var(--text-gray);
+        font-size: 0.9rem;
+    }
+    
+    .event-stats {
+        text-align: right;
+    }
+    
+    .event-stats .value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-orange);
+    }
+    
+    .event-stats .label {
+        font-size: 0.85rem;
+        color: var(--text-gray);
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .charts-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="admin-dashboard">
+    
+    <!-- STATISTIQUES PRINCIPALES -->
+    <div class="stats-grid">
+        <div class="stat-card highlight">
+            <div class="stat-label">Revenus Totaux</div>
+            <div class="stat-value revenue">{{ total_revenue|floatformat:2 }} TND</div>
+            <div class="stat-change">+{{ recent_reservations_count }} réservations ce mois</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-label">Utilisateurs</div>
+            <div class="stat-value">{{ total_users }}</div>
+            <div class="stat-change">{{ active_users }} actifs (+{{ new_users }} nouveau(x))</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-label">Événements</div>
+            <div class="stat-value">{{ total_events }}</div>
+            <div class="stat-change">{{ full_events }} complets</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-label">Réservations</div>
+            <div class="stat-value">{{ total_reservations }}</div>
+            <div class="stat-change success">{{ active_reservations }} confirmées</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-label">Places Vendues</div>
+            <div class="stat-value">{{ total_seats_sold }}</div>
+            <div class="stat-change">sur {{ total_capacity }} disponibles</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-label">Taux d'Occupation</div>
+            <div class="stat-value">{{ occupation_rate }}%</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ occupation_rate }}%"></div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-label">Valeur Moyenne</div>
+            <div class="stat-value">{{ avg_reservation_value|floatformat:2 }} TND</div>
+            <div class="stat-change">par réservation</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-label">Taux d'Annulation</div>
+            <div class="stat-value {% if cancellation_rate > 10 %}negative{% endif %}">{{ cancellation_rate }}%</div>
+            <div class="stat-change negative">{{ cancelled_reservations }} annulées</div>
+        </div>
+    </div>
+    
+    <!-- GRAPHIQUES PRINCIPAUX -->
+    <div class="charts-row">
+        <!-- Revenus mensuels -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Évolution des Revenus</h3>
+                    <p class="chart-subtitle">12 derniers mois</p>
+                </div>
+            </div>
+            <canvas id="revenueChart" style="max-height: 250px;"></canvas>
+        </div>
+        
+        <!-- Réservations par jour -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Réservations Quotidiennes</h3>
+                    <p class="chart-subtitle">7 derniers jours</p>
+                </div>
+            </div>
+            <canvas id="dailyReservationsChart" style="max-height: 250px;"></canvas>
+        </div>
+    </div>
+    
+    <div class="charts-row">
+        <!-- Événements par catégorie -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Distribution par Catégorie</h3>
+                    <p class="chart-subtitle">Événements et réservations</p>
+                </div>
+            </div>
+            <canvas id="categoryChart" style="max-height: 250px;"></canvas>
+        </div>
+        
+        <!-- Réservations par statut -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Répartition des Réservations</h3>
+                    <p class="chart-subtitle">Par statut</p>
+                </div>
+            </div>
+            <canvas id="statusChart" style="max-height: 250px;"></canvas>
+        </div>
+    </div>
+    
+    <div class="charts-row">
+        <!-- Top événements -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Top 5 Événements</h3>
+                    <p class="chart-subtitle">Par nombre de réservations</p>
+                </div>
+            </div>
+            <canvas id="topEventsChart" style="max-height: 250px;"></canvas>
+        </div>
+        
+        <!-- Distribution places -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Distribution des Places</h3>
+                    <p class="chart-subtitle">Par réservation</p>
+                </div>
+            </div>
+            <canvas id="seatsDistributionChart" style="max-height: 250px;"></canvas>
+        </div>
+    </div>
+    
+    <!-- ÉVÉNEMENTS À VENIR -->
+    <div class="table-container">
+        <div class="chart-header">
+            <h3 class="chart-title">Événements à Venir</h3>
+            <p class="chart-subtitle">Prochains événements confirmés</p>
+        </div>
+        
+        {% if upcoming_events %}
+            {% for event in upcoming_events %}
+                <div class="event-item">
+                    <div class="event-info">
+                        <h4>{{ event.title }}</h4>
+                        <p>{{ event.date|date:"d/m/Y à H:i" }} | {{ event.location }}</p>
+                    </div>
+                    <div class="event-stats">
+                        <div class="value">{{ event.available_seats }}/{{ event.capacity }}</div>
+                        <div class="label">places disponibles</div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: var(--text-gray); text-align: center; padding: 2rem;">Aucun événement à venir</p>
+        {% endif %}
+    </div>
+    
+    <!-- TOP UTILISATEURS -->
+    <div class="table-container">
+        <div class="chart-header">
+            <h3 class="chart-title">Top 10 Utilisateurs</h3>
+            <p class="chart-subtitle">Classement par nombre de réservations</p>
+        </div>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Réservations</th>
+                    <th>Dépenses Totales</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in top_users %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ user.first_name }} {{ user.last_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td><span class="badge info">{{ user.reservation_count }}</span></td>
+                        <td><strong>{{ user.total_spent|floatformat:2 }} TND</strong></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- RÉSERVATIONS RÉCENTES -->
+    <div class="table-container">
+        <div class="chart-header">
+            <h3 class="chart-title">Dernières Réservations</h3>
+            <p class="chart-subtitle">5 réservations les plus récentes</p>
+        </div>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Utilisateur</th>
+                    <th>Événement</th>
+                    <th>Places</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in latest_reservations %}
+                    <tr>
+                        <td><code>{{ reservation.reservation_code }}</code></td>
+                        <td>{{ reservation.user.first_name }} {{ reservation.user.last_name }}</td>
+                        <td>{{ reservation.event.title|truncatechars:40 }}</td>
+                        <td>{{ reservation.number_of_seats }}</td>
+                        <td><strong>{{ reservation.total_price }} TND</strong></td>
+                        <td>
+                            {% if reservation.status == 'CONFIRMEE' %}
+                                <span class="badge success">Confirmée</span>
+                            {% elif reservation.status == 'ANNULEE' %}
+                                <span class="badge danger">Annulée</span>
+                            {% else %}
+                                <span class="badge warning">{{ reservation.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ reservation.created_at|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Configuration des couleurs selon le thème
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDarkMode ? '#ffffff' : '#1a1a1a';
+    const gridColor = isDarkMode ? '#333333' : '#e0e0e0';
+    
+    const chartColors = {
+        primary: '#ff6b35',
+        success: '#4caf50',
+        danger: '#f44336',
+        warning: '#ff9800',
+        info: '#2196F3',
+        purple: '#9c27b0',
+        cyan: '#00bcd4'
+    };
+    
+    const defaultOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2,
+        plugins: {
+            legend: {
+                labels: {
+                    color: textColor,
+                    font: {
+                        size: 12
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: textColor
+                },
+                grid: {
+                    color: gridColor
+                }
+            },
+            x: {
+                ticks: {
+                    color: textColor
+                },
+                grid: {
+                    color: gridColor
+                }
+            }
+        }
+    };
+    
+    // 1. Graphique des revenus mensuels
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Revenus (TND)',
+                data: {{ monthly_revenue|safe }},
+                borderColor: chartColors.primary,
+                backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            ...defaultOptions,
+            plugins: {
+                ...defaultOptions.plugins,
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Revenus: ' + context.parsed.y.toFixed(2) + ' TND';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // 2. Graphique des réservations quotidiennes
+    const dailyCtx = document.getElementById('dailyReservationsChart').getContext('2d');
+    new Chart(dailyCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ daily_labels|safe }},
+            datasets: [
+                {
+                    label: 'Confirmées',
+                    data: {{ daily_confirmed|safe }},
+                    backgroundColor: chartColors.success
+                },
+                {
+                    label: 'Annulées',
+                    data: {{ daily_cancelled|safe }},
+                    backgroundColor: chartColors.danger
+                }
+            ]
+        },
+        options: defaultOptions
+    });
+    
+    // 3. Graphique par catégorie
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ category_labels|safe }},
+            datasets: [
+                {
+                    label: 'Événements',
+                    data: {{ category_events|safe }},
+                    backgroundColor: chartColors.primary
+                },
+                {
+                    label: 'Réservations',
+                    data: {{ category_reservations|safe }},
+                    backgroundColor: chartColors.info
+                }
+            ]
+        },
+        options: {
+            ...defaultOptions,
+            scales: {
+                ...defaultOptions.scales,
+                x: {
+                    ...defaultOptions.scales.x,
+                    stacked: false
+                },
+                y: {
+                    ...defaultOptions.scales.y,
+                    stacked: false
+                }
+            }
+        }
+    });
+    
+    // 4. Graphique statut des réservations
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ status_labels|safe }},
+            datasets: [{
+                data: {{ status_data|safe }},
+                backgroundColor: [
+                    chartColors.success,
+                    chartColors.danger,
+                    chartColors.warning
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: textColor,
+                        padding: 15,
+                        font: {
+                            size: 13
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // 5. Top événements
+    const topEventsCtx = document.getElementById('topEventsChart').getContext('2d');
+    new Chart(topEventsCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ top_events_labels|safe }},
+            datasets: [{
+                label: 'Réservations',
+                data: {{ top_events_data|safe }},
+                backgroundColor: chartColors.primary
+            }]
+        },
+        options: {
+            ...defaultOptions,
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    ticks: {
+                        color: textColor
+                    },
+                    grid: {
+                        color: gridColor
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: textColor
+                    },
+                    grid: {
+                        color: gridColor
+                    }
+                }
+            }
+        }
+    });
+    
+    // 6. Distribution des places
+    const seatsCtx = document.getElementById('seatsDistributionChart').getContext('2d');
+    new Chart(seatsCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ seats_labels|safe }},
+            datasets: [{
+                data: {{ seats_data|safe }},
+                backgroundColor: [
+                    chartColors.primary,
+                    chartColors.success,
+                    chartColors.info,
+                    chartColors.warning,
+                    chartColors.purple,
+                    chartColors.cyan
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: textColor,
+                        padding: 10,
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Mise à jour des graphiques lors du changement de thème
+    document.getElementById('theme-toggle')?.addEventListener('click', function() {
+        setTimeout(() => {
+            location.reload();
+        }, 100);
+    });
+</script>
+
+{% endblock %}

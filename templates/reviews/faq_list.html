@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}FAQ - Festy Event{% endblock %}
+
+{% block content %}
+<style>
+.faq-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    padding: 3rem 0;
+    color: white;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.faq-category {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.faq-item {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1.5rem 0;
+}
+
+.faq-item:last-child {
+    border-bottom: none;
+}
+
+.faq-question {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #111827;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-answer {
+    margin-top: 1rem;
+    color: #6b7280;
+    line-height: 1.6;
+}
+</style>
+
+<div class="faq-header">
+    <h1><i class="fas fa-question-circle"></i> Questions Fréquentes</h1>
+    <p>Trouvez rapidement les réponses à vos questions</p>
+</div>
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+    {% if search_query %}
+    <div class="card" style="margin-bottom: 2rem; padding: 1rem; background: #eff6ff;">
+        <p style="margin: 0;"><i class="fas fa-search"></i> Résultats pour : <strong>{{ search_query }}</strong></p>
+    </div>
+    {% endif %}
+
+    {% for category, faqs in faq_categories.items %}
+    <div class="faq-category">
+        <h2 style="color: #fb923c; margin-top: 0;">
+            <i class="fas fa-folder-open"></i> {{ faqs.0.get_category_display }}
+        </h2>
+        {% for faq in faqs %}
+        <div class="faq-item">
+            <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
+                <span>{{ faq.question }}</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer" style="display: none;">
+                {{ faq.answer|linebreaks }}
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'faq_helpful' faq.pk %}" class="btn btn-sm" style="background: #10b981; color: white;">
+                        <i class="fas fa-thumbs-up"></i> Utile ({{ faq.helpful_count }})
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 3rem; color: #6b7280;">
+        <i class="fas fa-inbox" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+        <p>Aucune FAQ trouvée.</p>
+    </div>
+    {% endfor %}
+
+    <div class="card" style="padding: 2rem; text-align: center; background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: white;">
+        <h3 style="margin-top: 0; color: white;">Vous ne trouvez pas de réponse ?</h3>
+        <p>Notre équipe est là pour vous aider !</p>
+        <a href="{% url 'contact' %}" class="btn" style="background: white; color: #fb923c; font-weight: 600;">
+            <i class="fas fa-envelope"></i> Nous contacter
+        </a>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.faq-question').forEach(question => {
+    question.addEventListener('click', function() {
+        const item = this.parentElement;
+        const answer = item.querySelector('.faq-answer');
+        const icon = this.querySelector('i');
+        
+        if (answer.style.display === 'none') {
+            answer.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            answer.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+        }
+    });
+});
+</script>
+{% endblock %}

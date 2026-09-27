@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Profil - Festy Event{% endblock %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .profile-header {
+        background: var(--secondary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .profile-info h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-info p {
+        color: var(--text-gray);
+        margin: 0.25rem 0;
+    }
+    
+    .profile-stats {
+        display: flex;
+        gap: 2rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-orange);
+    }
+    
+    .stat-label {
+        color: var(--text-gray);
+        font-size: 0.9rem;
+    }
+    
+    .profile-section {
+        background: var(--secondary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-orange);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-white);
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--primary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 5px;
+        color: var(--text-white);
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-orange);
+    }
+    
+    .error-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 0 0;
+    }
+    
+    .error-list li {
+        color: var(--error-red);
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+    
+    .danger-zone {
+        background: rgba(244, 67, 54, 0.1);
+        border: 1px solid var(--error-red);
+        border-radius: 10px;
+        padding: 2rem;
+    }
+    
+    .danger-zone h3 {
+        color: var(--error-red);
+        margin-bottom: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 1.5rem;
+        }
+        
+        .profile-stats {
+            width: 100%;
+            justify-content: space-around;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Navigation rapide -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="margin: 0;"> Mon Profil</h1>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-chart-bar"></i> Dashboard
+            </a>
+            <a href="{% url 'reservation_list' %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-ticket-alt"></i> Mes réservations
+            </a>
+            <a href="{% url 'event_list' %}" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-calendar"></i> Événements
+            </a>
+        </div>
+    </div>
+    
+    <!-- En-tête du profil -->
+    <div class="profile-header">
+        <div class="profile-info">
+            <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+            <p><strong>Nom d'utilisateur:</strong> @{{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Membre depuis:</strong> {{ user.date_joined|date:"F Y" }}</p>
+        </div>
+        
+        <div class="profile-stats">
+            <div class="stat-item">
+                <div class="stat-value">{{ total_reservations }}</div>
+                <div class="stat-label">Réservations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ active_reservations }}</div>
+                <div class="stat-label">Actives</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modification du profil -->
+    <div class="profile-section">
+        <h2 class="section-title">Modifier mon profil</h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.first_name.id_for_label }}">Prénom</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <ul class="error-list">
+                        {% for error in form.first_name.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.last_name.id_for_label }}">Nom</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <ul class="error-list">
+                        {% for error in form.last_name.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">Adresse email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <ul class="error-list">
+                        {% for error in form.email.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    Enregistrer les modifications
+                </button>
+                <a href="{% url 'event_list' %}" class="btn btn-secondary" style="flex: 1; text-align: center;">
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Zone dangereuse -->
+    <div class="danger-zone">
+        <h3>Zone Dangereuse</h3>
+        <p style="color: var(--text-gray); margin-bottom: 1rem;">
+            La suppression de votre compte est définitive et irréversible. 
+            Toutes vos données seront perdues.
+        </p>
+        <a href="{% url 'users:delete_account' %}" class="btn btn-danger">
+            Supprimer mon compte
+        </a>
+    </div>
+</div>
+{% endblock %}

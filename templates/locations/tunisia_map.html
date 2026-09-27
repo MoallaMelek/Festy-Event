@@ -1,0 +1,489 @@
+{% extends 'base.html' %}
+
+{% block title %}Carte de Tunisie - Lieux par Gouvernorat - Festy Event{% endblock %}
+
+{% block content %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div style="max-width: 1600px; margin: 0 auto;">
+    <h1><i class="fas fa-map-marked-alt"></i> Carte Interactive de la Tunisie</h1>
+    
+    <div style="display: grid; grid-template-columns: 800px 1fr; gap: 2rem; margin-top: 2rem;">
+        <!-- Carte Leaflet -->
+        <div>
+            <div class="card" style="padding: 1.5rem;">
+                <h3 style="margin-top: 0; color: var(--primary-orange); text-align: center;">
+                    <i class="fas fa-map"></i> Cliquez sur une région
+                </h3>
+                
+                <!-- Carte interactive -->
+                <div id="map" style="height: 700px; border-radius: 12px; border: 3px solid #fb923c; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                
+                <!-- Légende -->
+                <div style="margin-top: 1rem; padding: 1rem; background: #fff7ed; border-radius: 8px; border-left: 4px solid #fb923c;">
+                    <p style="margin: 0; color: #9a3412; font-size: 0.95rem;">
+                        <i class="fas fa-hand-pointer"></i> 
+                        <strong>Cliquez sur un marqueur</strong> pour filtrer les lieux par gouvernorat
+                    </p>
+                    <div style="margin-top: 0.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <span style="font-size: 0.85rem; color: #6b7280;">
+                            <i class="fas fa-map-pin" style="color: #fb923c;"></i> Gouvernorat avec lieux
+                        </span>
+                        <span style="font-size: 0.85rem; color: #6b7280;">
+                            <i class="fas fa-map-pin" style="color: #94a3b8;"></i> Gouvernorat sans lieux
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistiques -->
+            <div class="card" style="margin-top: 1rem; padding: 1.5rem; background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);">
+                <h4 style="color: white; margin: 0 0 1rem 0;">
+                    <i class="fas fa-chart-bar"></i> Statistiques Générales
+                </h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: white;">24</div>
+                        <div style="color: white; font-size: 0.9rem;">Gouvernorats</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: white;">{{ locations|length }}</div>
+                        <div style="color: white; font-size: 0.9rem;">
+                            Lieux au total
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Informations de la région sélectionnée -->
+            <div id="region-info" style="margin-top: 1rem;">
+                {% if selected_governorate %}
+                <div class="card" style="padding: 1.5rem; background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: white; animation: fadeIn 0.5s;">
+                    <h3 style="margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-map-marker-alt"></i> {{ selected_governorate_name }}
+                    </h3>
+                    <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; font-weight: 700;">{{ locations|length }}</div>
+                        <div style="font-size: 0.9rem;">Lieu(x) disponible(s)</div>
+                    </div>
+                    <a href="{% url 'tunisia_map' %}" style="display: block; text-align: center; padding: 0.75rem 1rem; background: white; color: #fb923c; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
+                        <i class="fas fa-times"></i> Réinitialiser la sélection
+                    </a>
+                </div>
+                {% else %}
+                <div class="card" style="padding: 1.5rem; background: #f1f5f9; color: #64748b; text-align: center;">
+                    <i class="fas fa-hand-pointer" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                    <p style="margin: 0; font-size: 1.1rem; font-weight: 600;">Sélectionnez une région sur la carte</p>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Cliquez sur un marqueur pour voir les détails</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Résultats -->
+        <div>
+            {% if selected_governorate %}
+            <div class="card">
+                <h3 style="margin-top: 0; color: var(--primary-orange);">
+                    <i class="fas fa-building"></i> 
+                    Lieux à {{ selected_governorate_name }}
+                    <span style="color: #6b7280;">({{ locations|length }})</span>
+                </h3>
+                
+                {% if locations %}
+                    <div style="display: grid; gap: 1rem;">
+                        {% for location in locations %}
+                            <div class="location-card">
+                                <div class="location-header">
+                                    <h4 style="margin: 0; color: var(--primary-orange);">
+                                        <i class="fas fa-building"></i> {{ location.name }}
+                                    </h4>
+                                    <span class="status-badge" style="background: #d1fae5; color: #065f46;">
+                                        {{ location.get_status_display }}
+                                    </span>
+                                </div>
+                                
+                                <div class="location-info">
+                                    <div class="info-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>{{ location.city }}, {{ location.get_governorate_display }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-home"></i>
+                                        <span>{{ location.get_location_type_display }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-users"></i>
+                                        <span>Capacité : {{ location.capacity }} personnes</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span>{{ location.hourly_rate }} TND/heure</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="location-actions">
+                                    <a href="{% url 'location_detail' location.id %}" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-eye"></i> Détails
+                                    </a>
+                                    <a href="{% url 'location_calendar' location.id %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-calendar-alt"></i> Calendrier
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align: center; padding: 3rem; color: #6b7280;">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Aucun lieu disponible dans ce gouvernorat</p>
+                    </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="card" style="padding: 3rem; text-align: center; color: #6b7280;">
+                <i class="fas fa-map-marked-alt" style="font-size: 4rem; margin-bottom: 1rem; color: #fb923c;"></i>
+                <h3 style="color: #374151; margin-bottom: 1rem;">Explorez les lieux par région</h3>
+                <p style="margin: 0;">Sélectionnez un gouvernorat sur la carte pour découvrir les lieux disponibles</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.gov-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem 0.75rem;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 2px solid #fed7aa;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.gov-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(251, 146, 60, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.gov-card:hover::before {
+    left: 100%;
+}
+
+.gov-card:hover {
+    transform: translateY(-5px);
+    border-color: #fb923c;
+    box-shadow: 0 8px 16px rgba(251, 146, 60, 0.3);
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+}
+
+.gov-card:hover .gov-name,
+.gov-card:hover .gov-count,
+.gov-card:hover i {
+    color: white !important;
+}
+
+.gov-card.active {
+    background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+    border-color: #ea580c;
+    box-shadow: 0 8px 16px rgba(234, 88, 12, 0.4);
+}
+
+.gov-card.active .gov-name,
+.gov-card.active .gov-count,
+.gov-card.active i {
+    color: white !important;
+}
+
+.gov-card i {
+    font-size: 1.75rem;
+    color: #fb923c;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s;
+}
+
+.gov-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 0.25rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.gov-count {
+    font-size: 0.8rem;
+    color: #6b7280;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.location-card {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s;
+}
+
+.location-card:hover {
+    border-color: #fb923c;
+    box-shadow: 0 4px 6px rgba(251, 146, 60, 0.1);
+}
+
+.location-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.location-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.info-item i {
+    color: #fb923c;
+    width: 20px;
+}
+
+.location-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 968px) {
+    div[style*="grid-template-columns: 700px 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .location-info {
+        grid-template-columns: 1fr;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+</style>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Initialiser la carte centrée sur la Tunisie avec restrictions
+var map = L.map('map', {
+    center: [34.0, 9.5],
+    zoom: 7,
+    minZoom: 6,
+    maxZoom: 11,
+    maxBounds: [
+        [29.0, 6.0],  // Sud-Ouest
+        [38.0, 13.0]  // Nord-Est
+    ],
+    maxBoundsViscosity: 1.0
+});
+
+// Ajouter le fond de carte OpenStreetMap
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 11
+}).addTo(map);
+
+// Coordonnées des gouvernorats tunisiens
+var governorates = [
+    // Nord
+    {code: 'BIZERTE', name: 'Bizerte', lat: 37.2744, lng: 9.8739, count: {% for g in governorates %}{% if g.code == 'BIZERTE' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'TUNIS', name: 'Tunis', lat: 36.8065, lng: 10.1815, count: {% for g in governorates %}{% if g.code == 'TUNIS' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'ARIANA', name: 'Ariana', lat: 36.8625, lng: 10.1956, count: {% for g in governorates %}{% if g.code == 'ARIANA' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'BEN_AROUS', name: 'Ben Arous', lat: 36.7472, lng: 10.2283, count: {% for g in governorates %}{% if g.code == 'BEN_AROUS' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'MANOUBA', name: 'Manouba', lat: 36.8083, lng: 10.0914, count: {% for g in governorates %}{% if g.code == 'MANOUBA' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'NABEUL', name: 'Nabeul', lat: 36.4561, lng: 10.7358, count: {% for g in governorates %}{% if g.code == 'NABEUL' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'ZAGHOUAN', name: 'Zaghouan', lat: 36.4028, lng: 10.1425, count: {% for g in governorates %}{% if g.code == 'ZAGHOUAN' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'BEJA', name: 'Béja', lat: 36.7256, lng: 9.1817, count: {% for g in governorates %}{% if g.code == 'BEJA' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'JENDOUBA', name: 'Jendouba', lat: 36.5011, lng: 8.7803, count: {% for g in governorates %}{% if g.code == 'JENDOUBA' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'KEF', name: 'Le Kef', lat: 36.1742, lng: 8.7150, count: {% for g in governorates %}{% if g.code == 'KEF' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'SILIANA', name: 'Siliana', lat: 36.0850, lng: 9.3708, count: {% for g in governorates %}{% if g.code == 'SILIANA' %}{{ g.count }}{% endif %}{% endfor %}},
+    
+    // Centre
+    {code: 'SOUSSE', name: 'Sousse', lat: 35.8256, lng: 10.6369, count: {% for g in governorates %}{% if g.code == 'SOUSSE' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'MONASTIR', name: 'Monastir', lat: 35.7775, lng: 10.8264, count: {% for g in governorates %}{% if g.code == 'MONASTIR' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'MAHDIA', name: 'Mahdia', lat: 35.5047, lng: 11.0622, count: {% for g in governorates %}{% if g.code == 'MAHDIA' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'SFAX', name: 'Sfax', lat: 34.7406, lng: 10.7603, count: {% for g in governorates %}{% if g.code == 'SFAX' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'KAIROUAN', name: 'Kairouan', lat: 35.6781, lng: 10.0964, count: {% for g in governorates %}{% if g.code == 'KAIROUAN' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'KASSERINE', name: 'Kasserine', lat: 35.1672, lng: 8.8319, count: {% for g in governorates %}{% if g.code == 'KASSERINE' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'SIDI_BOUZID', name: 'Sidi Bouzid', lat: 35.0381, lng: 9.4858, count: {% for g in governorates %}{% if g.code == 'SIDI_BOUZID' %}{{ g.count }}{% endif %}{% endfor %}},
+    
+    // Sud
+    {code: 'GABES', name: 'Gabès', lat: 33.8815, lng: 10.0982, count: {% for g in governorates %}{% if g.code == 'GABES' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'MEDENINE', name: 'Médenine', lat: 33.3549, lng: 10.5055, count: {% for g in governorates %}{% if g.code == 'MEDENINE' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'TATAOUINE', name: 'Tataouine', lat: 32.9297, lng: 10.4517, count: {% for g in governorates %}{% if g.code == 'TATAOUINE' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'GAFSA', name: 'Gafsa', lat: 34.425, lng: 8.7842, count: {% for g in governorates %}{% if g.code == 'GAFSA' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'TOZEUR', name: 'Tozeur', lat: 33.9197, lng: 8.1339, count: {% for g in governorates %}{% if g.code == 'TOZEUR' %}{{ g.count }}{% endif %}{% endfor %}},
+    {code: 'KEBILI', name: 'Kébili', lat: 33.7047, lng: 8.9689, count: {% for g in governorates %}{% if g.code == 'KEBILI' %}{{ g.count }}{% endif %}{% endfor %}}
+];
+
+// Icône personnalisée pour les marqueurs
+var orangeIcon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div style="background: #fb923c; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas fa-map-pin" style="color: white; font-size: 14px;"></i></div>',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15]
+});
+
+var greyIcon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div style="background: #94a3b8; width: 25px; height: 25px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;"><i class="fas fa-map-pin" style="color: white; font-size: 12px;"></i></div>',
+    iconSize: [25, 25],
+    iconAnchor: [12.5, 12.5]
+});
+
+var selectedIcon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div style="background: #dc2626; width: 35px; height: 35px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(220,38,38,0.5); display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;"><i class="fas fa-map-pin" style="color: white; font-size: 16px;"></i></div>',
+    iconSize: [35, 35],
+    iconAnchor: [17.5, 17.5]
+});
+
+// Variable pour suivre le marqueur actuellement sélectionné
+var currentSelectedMarker = null;
+var currentSelectedIcon = null;
+
+// Fonction pour afficher les infos d'une région
+function showRegionInfo(gov) {
+    var infoDiv = document.getElementById('region-info');
+    if (gov.count > 0) {
+        infoDiv.innerHTML = '<div class="card" style="padding: 1.5rem; background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: white; animation: fadeIn 0.5s;">' +
+            '<h3 style="margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">' +
+            '<i class="fas fa-map-marker-alt"></i> ' + gov.name + '</h3>' +
+            '<div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">' +
+            '<div style="font-size: 2rem; font-weight: 700;">' + gov.count + '</div>' +
+            '<div style="font-size: 0.9rem;">Lieu(x) disponible(s)</div>' +
+            '</div>' +
+            '<a href="?governorate=' + gov.code + '" style="display: block; text-align: center; padding: 0.75rem 1rem; background: white; color: #fb923c; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s;">' +
+            '<i class="fas fa-eye"></i> Voir tous les lieux de ' + gov.name +
+            '</a>' +
+            '</div>';
+    } else {
+        infoDiv.innerHTML = '<div class="card" style="padding: 1.5rem; background: #f1f5f9; color: #64748b; text-align: center;">' +
+            '<i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>' +
+            '<h3 style="margin: 0 0 0.5rem 0;">' + gov.name + '</h3>' +
+            '<p style="margin: 0;">Aucun lieu disponible dans ce gouvernorat</p>' +
+            '</div>';
+    }
+}
+
+// Ajouter les marqueurs pour chaque gouvernorat
+var markers = {};
+governorates.forEach(function(gov) {
+    var icon = (gov.count > 0) ? orangeIcon : greyIcon;
+    
+    // Si c'est le gouvernorat sélectionné, utiliser l'icône rouge
+    {% if selected_governorate %}
+    if (gov.code === '{{ selected_governorate }}') {
+        icon = selectedIcon;
+    }
+    {% endif %}
+    
+    var marker = L.marker([gov.lat, gov.lng], {icon: icon}).addTo(map);
+    markers[gov.code] = {marker: marker, gov: gov, originalIcon: (gov.count > 0) ? orangeIcon : greyIcon};
+    
+    var popupContent = '<div style="text-align: center; min-width: 150px;">' +
+        '<strong style="color: #fb923c; font-size: 1.1rem;">' + gov.name + '</strong><br>' +
+        '<span style="color: #6b7280; font-size: 0.9rem;">' + gov.count + ' lieu(x) disponible(s)</span><br>';
+    
+    if (gov.count > 0) {
+        popupContent += '<button onclick="selectGovernorate(\'' + gov.code + '\')" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: #fb923c; color: white; border: none; border-radius: 6px; font-size: 0.85rem; cursor: pointer;">Sélectionner</button>';
+    }
+    
+    popupContent += '</div>';
+    
+    marker.bindPopup(popupContent);
+    
+    // Clic sur le marqueur
+    marker.on('click', function() {
+        selectMarker(gov.code);
+    });
+});
+
+// Fonction pour sélectionner un gouvernorat
+function selectMarker(code) {
+    // Restaurer l'icône du marqueur précédent
+    if (currentSelectedMarker && markers[currentSelectedMarker]) {
+        markers[currentSelectedMarker].marker.setIcon(markers[currentSelectedMarker].originalIcon);
+    }
+    
+    // Mettre à jour le nouveau marqueur sélectionné
+    if (markers[code]) {
+        markers[code].marker.setIcon(selectedIcon);
+        currentSelectedMarker = code;
+        showRegionInfo(markers[code].gov);
+        
+        // Centrer la carte sur le marqueur
+        map.setView([markers[code].gov.lat, markers[code].gov.lng], 9);
+    }
+}
+
+// Fonction globale pour sélectionner depuis le popup
+window.selectGovernorate = function(code) {
+    selectMarker(code);
+};
+
+{% if selected_governorate %}
+// Si un gouvernorat est sélectionné, afficher ses infos et centrer la carte
+var selectedGov = governorates.find(g => g.code === '{{ selected_governorate }}');
+if (selectedGov) {
+    selectMarker('{{ selected_governorate }}');
+}
+{% endif %}
+</script>
+
+{% endblock %}

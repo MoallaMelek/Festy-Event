@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Payer ma facture - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'reservation_detail' invoice.reservation.id %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour à ma réservation
+    </a>
+</div>
+
+<div class="form-container">
+    <h1><i class="fas fa-credit-card"></i> Payer ma facture</h1>
+
+    <div class="card" style="margin-bottom: 1.5rem; background: #f8fafc;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">Récapitulatif de la facture</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <strong style="color: var(--text-gray);">Facture N°</strong>
+                <p style="font-size: 1.2rem; margin: 0.5rem 0;">{{ invoice.invoice_number }}</p>
+            </div>
+            
+            <div>
+                <strong style="color: var(--text-gray);">Événement</strong>
+                <p style="font-size: 1.2rem; margin: 0.5rem 0;">{{ invoice.reservation.event.title }}</p>
+            </div>
+            
+            <div>
+                <strong style="color: var(--text-gray);">Montant Total TTC</strong>
+                <p style="font-size: 1.8rem; margin: 0.5rem 0; color: var(--primary-orange); font-weight: bold;">
+                    {{ invoice.total_amount|floatformat:3 }} TND
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary-orange);">
+            <i class="fas fa-money-bill-wave"></i> Effectuer le paiement
+        </h2>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="amount">Montant à payer (TND) *</label>
+                <input type="number" 
+                       id="amount" 
+                       name="amount" 
+                       step="0.001" 
+                       value="{{ invoice.total_amount }}" 
+                       required
+                       style="font-size: 1.2rem; font-weight: bold;">
+                <small style="color: var(--text-gray);">Vous pouvez effectuer un paiement partiel si nécessaire</small>
+            </div>
+
+            <div class="form-group">
+                <label for="payment_method">Méthode de paiement *</label>
+                <select id="payment_method" name="payment_method" required>
+                    <option value="">-- Choisir une méthode --</option>
+                    <option value="CASH">💵 Espèces</option>
+                    <option value="CARD">💳 Carte bancaire</option>
+                    <option value="BANK_TRANSFER">🏦 Virement bancaire</option>
+                    <option value="MOBILE">📱 Paiement mobile (D17, Mobiflouss)</option>
+                    <option value="CHEQUE">📝 Chèque</option>
+                </select>
+            </div>
+
+            <div class="alert alert-info" style="margin: 1.5rem 0;">
+                <i class="fas fa-info-circle"></i> <strong>Note:</strong> Votre paiement sera enregistré immédiatement. 
+                Si vous payez par virement ou chèque, veuillez apporter la preuve lors de l'événement.
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-check"></i> Confirmer le paiement
+                </button>
+                <a href="{% url 'reservation_detail' invoice.reservation.id %}" class="btn btn-secondary" style="flex: 1; text-decoration: none;">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+}
+
+.alert-info {
+    background: #e0f2fe;
+    border: 1px solid #3b82f6;
+    padding: 1rem;
+    border-radius: 8px;
+    color: #1e40af;
+}
+</style>
+{% endblock %}

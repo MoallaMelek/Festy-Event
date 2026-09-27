@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} - Festy Event{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <a href="{% url 'event_list' %}" class="btn btn-secondary" style="text-decoration: none;">
+        <i class="fas fa-arrow-left"></i> Retour aux événements
+    </a>
+    
+    {% if user.is_staff %}
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{% url 'event_update' event.id %}" class="btn" style="text-decoration: none; background: #3b82f6; color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        
+        {% if event.status != 'CONFIRME' %}
+        <a href="{% url 'event_confirm' event.id %}" class="btn" style="text-decoration: none; background: #10b981; color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-check-circle"></i> Confirmer
+        </a>
+        {% endif %}
+        
+        <a href="{% url 'event_delete' event.id %}" class="btn" style="text-decoration: none; background: #ef4444; color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-trash-alt"></i> Supprimer
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    {% if event.image_url %}
+        <img src="{{ event.image_url }}" alt="{{ event.title }}" style="width: 100%; height: 400px; object-fit: cover; border-radius: 10px; margin-bottom: 2rem;">
+    {% else %}
+        <div style="width: 100%; height: 400px; background: linear-gradient(135deg, #ff6b35 0%, #f79256 100%); border-radius: 10px; margin-bottom: 2rem; display: flex; align-items: center; justify-content: center; font-size: 6rem;">
+            
+        </div>
+    {% endif %}
+
+    <h1>{{ event.title }}</h1>
+    <p style="color: #b0b0b0; font-size: 1.1rem; margin-bottom: 2rem;">{{ event.description }}</p>
+
+    <div class="event-detail">
+        <div class="info-item">
+            <div class="info-label"> Date et heure</div>
+            <div class="info-value">{{ event.date|date:"l d F Y à H:i" }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Lieu</div>
+            <div class="info-value">{{ event.location }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Catégorie</div>
+            <div class="info-value">{{ event.get_category_display }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Prix par personne</div>
+            <div class="info-value">{{ event.price_per_person }} TND</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Capacité totale</div>
+            <div class="info-value">{{ event.capacity }} places</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Places disponibles</div>
+            <div class="info-value">{{ event.available_seats }} places</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Participants inscrits</div>
+            <div class="info-value">{{ event.get_registered_count }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Statut</div>
+            <div class="info-value">
+                {% if event.status == 'CONFIRME' %}
+                    <span class="badge badge-success">{{ event.get_status_display }}</span>
+                {% elif event.status == 'ANNULE' %}
+                    <span class="badge badge-danger">{{ event.get_status_display }}</span>
+                {% else %}
+                    <span class="badge badge-warning">{{ event.get_status_display }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+        {% if event.is_available %}
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="{% url 'reservation_create' event.id %}" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 3rem;">
+                     Réserver maintenant
+                </a>
+            </div>
+        {% else %}
+            <div class="alert alert-warning" style="margin-top: 2rem;">
+                 Cet événement n'est plus disponible pour la réservation (places épuisées ou événement passé).
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info" style="margin-top: 2rem;">
+            ℹ️ <a href="{% url 'users:login' %}" style="color: #ff6b35; text-decoration: underline;">Connectez-vous</a> pour réserver une place.
+        </div>
+    {% endif %}
+</div>
+
+<!-- Section Recommandations -->
+<div class="card" style="margin-top: 2rem;">
+    <h2 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+        <i class="fas fa-star" style="color: #ffc107;"></i> 
+        Recommandations
+    </h2>
+
+    <!-- Statistiques -->
+    <div style="display: flex; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
+        <div style="text-align: center; padding: 1rem; background: #2a2a2a; border-radius: 10px; flex: 1; min-width: 150px;">
+            <div style="font-size: 2.5rem; color: #ffc107; font-weight: bold;">
+                {{ average_rating|default:"0" }}
+            </div>
+            <div style="color: #ffc107; font-size: 1.5rem; margin: 0.5rem 0;">
+                {% if average_rating %}
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= average_rating %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                {% else %}
+                    ☆☆☆☆☆
+                {% endif %}
+            </div>
+            <div style="color: #b0b0b0;">{{ recommendations_count }} avis</div>
+        </div>
+        
+        {% if user.is_authenticated %}
+            <div style="flex: 2; display: flex; flex-direction: column; justify-content: center; gap: 1rem;">
+                {% if user_recommendation %}
+                    <div class="alert alert-success" style="margin: 0;">
+                        <i class="fas fa-check-circle"></i> Vous avez déjà laissé une recommandation pour cet événement.
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{% url 'recommendation_update' user_recommendation.id %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Modifier ma recommandation
+                        </a>
+                        <a href="{% url 'recommendation_delete' user_recommendation.id %}" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </a>
+                    </div>
+                {% else %}
+                    <a href="{% url 'recommendation_create' event.id %}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">
+                        <i class="fas fa-star"></i> Laisser une recommandation
+                    </a>
+                {% endif %}
+            </div>
+        {% else %}
+            <div style="flex: 2; display: flex; align-items: center;">
+                <div class="alert alert-info" style="margin: 0; width: 100%;">
+                    <i class="fas fa-info-circle"></i> 
+                    <a href="{% url 'users:login' %}" style="color: #ff6b35; text-decoration: underline;">Connectez-vous</a> 
+                    pour laisser une recommandation.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Aperçu des recommandations -->
+    {% if recommendations %}
+        <h3 style="margin-bottom: 1rem;">Dernières recommandations</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for recommendation in recommendations %}
+                <div style="background: #2a2a2a; padding: 1.5rem; border-radius: 10px; {% if recommendation.is_featured %}border: 2px solid #ffc107;{% endif %}">
+                    {% if recommendation.is_featured %}
+                        <div style="background: #ffc107; color: #000; padding: 0.3rem 0.8rem; border-radius: 5px; display: inline-block; margin-bottom: 0.5rem; font-weight: bold;">
+                            <i class="fas fa-star"></i> Recommandation mise en avant
+                        </div>
+                    {% endif %}
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div>
+                            <h4 style="margin: 0 0 0.5rem 0;">{{ recommendation.title }}</h4>
+                            <div style="color: #ffc107; font-size: 1.2rem; margin-bottom: 0.5rem;">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= recommendation.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </div>
+                            <small style="color: #b0b0b0;">
+                                Par <strong>{{ recommendation.user.get_full_name|default:recommendation.user.username }}</strong>
+                                le {{ recommendation.created_at|date:"d/m/Y" }}
+                            </small>
+                        </div>
+                        {% if recommendation.would_recommend %}
+                            <span style="background: #10b981; color: white; padding: 0.5rem 1rem; border-radius: 5px; font-size: 0.9rem;">
+                                <i class="fas fa-thumbs-up"></i> Recommandé
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <p style="color: #e0e0e0; margin-bottom: 1rem;">{{ recommendation.comment|truncatewords:50 }}</p>
+
+                    <!-- Critères détaillés -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <div style="text-align: center;">
+                            <small style="color: #b0b0b0;">Organisation</small><br>
+                            <strong style="color: #ffc107;">{{ recommendation.organization_rating }}★</strong>
+                        </div>
+                        <div style="text-align: center;">
+                            <small style="color: #b0b0b0;">Ambiance</small><br>
+                            <strong style="color: #ffc107;">{{ recommendation.ambiance_rating }}★</strong>
+                        </div>
+                        <div style="text-align: center;">
+                            <small style="color: #b0b0b0;">Qualité/Prix</small><br>
+                            <strong style="color: #ffc107;">{{ recommendation.value_rating }}★</strong>
+                        </div>
+                        <div style="text-align: center;">
+                            <small style="color: #b0b0b0;">Lieu</small><br>
+                            <strong style="color: #ffc107;">{{ recommendation.venue_rating }}★</strong>
+                        </div>
+                    </div>
+
+                    <!-- Tags -->
+                    {% if recommendation.tags %}
+                        <div style="margin-bottom: 1rem;">
+                            {% for tag in recommendation.get_tags_list %}
+                                <span style="background: #3b82f6; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.85rem; margin-right: 0.5rem;">
+                                    {{ tag }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #3a3a3a;">
+                        <a href="{% url 'recommendation_helpful' recommendation.id %}" style="color: #3b82f6; text-decoration: none;">
+                            <i class="fas fa-thumbs-up"></i> Utile ({{ recommendation.helpful_count }})
+                        </a>
+                    </div>
+
+                    <!-- Réponse admin -->
+                    {% if recommendation.admin_response %}
+                        <div style="background: #1e3a5f; padding: 1rem; border-radius: 5px; margin-top: 1rem; border-left: 3px solid #3b82f6;">
+                            <strong style="color: #3b82f6;"><i class="fas fa-reply"></i> Réponse de l'équipe:</strong><br>
+                            <p style="margin: 0.5rem 0 0 0; color: #e0e0e0;">{{ recommendation.admin_response }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <a href="{% url 'recommendation_list' event.id %}" class="btn btn-outline-primary">
+                <i class="fas fa-list"></i> Voir toutes les recommandations ({{ recommendations_count }})
+            </a>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Aucune recommandation pour le moment. 
+            {% if user.is_authenticated %}
+                Soyez le premier à laisser votre avis !
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Réclamation #{{ complaint.id }} - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'complaint_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour à mes réclamations
+    </a>
+</div>
+
+<div class="detail-container">
+    <div class="detail-header">
+        <h1>
+            <i class="fas fa-comment-alt"></i> Réclamation #{{ complaint.id }}
+        </h1>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <span class="badge" style="background: {{ complaint.get_status_color }}; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600;">
+                {{ complaint.get_status_display }}
+            </span>
+            <span class="badge" style="background: {{ complaint.get_priority_color }}; color: white; padding: 0.5rem 1rem; border-radius: 6px;">
+                Priorité: {{ complaint.get_priority_display }}
+            </span>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-info-circle"></i> Informations générales
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-tag" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Catégorie</strong>
+                    <p>{{ complaint.get_category_display }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-clock" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Date de création</strong>
+                    <p>{{ complaint.created_at|date:"d/m/Y à H:i" }}</p>
+                </div>
+            </div>
+
+            {% if complaint.reservation %}
+            <div class="info-item">
+                <i class="fas fa-ticket-alt" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Réservation liée</strong>
+                    <p>
+                        <a href="{% url 'reservation_detail' complaint.reservation.id %}" style="color: var(--primary-orange); text-decoration: none;">
+                            Réservation #{{ complaint.reservation.id }}
+                        </a>
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if complaint.event %}
+            <div class="info-item">
+                <i class="fas fa-calendar-alt" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Événement lié</strong>
+                    <p>
+                        <a href="{% url 'event_detail' complaint.event.id %}" style="color: var(--primary-orange); text-decoration: none;">
+                            {{ complaint.event.title }}
+                        </a>
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if complaint.updated_at != complaint.created_at %}
+            <div class="info-item">
+                <i class="fas fa-sync" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Dernière mise à jour</strong>
+                    <p>{{ complaint.updated_at|date:"d/m/Y à H:i" }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if complaint.resolved_at %}
+            <div class="info-item">
+                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                <div>
+                    <strong>Date de résolution</strong>
+                    <p>{{ complaint.resolved_at|date:"d/m/Y à H:i" }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-heading"></i> Sujet
+        </h2>
+        <p style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">
+            {{ complaint.subject }}
+        </p>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-align-left"></i> Description
+        </h2>
+        <p style="line-height: 1.6; white-space: pre-wrap;">{{ complaint.description }}</p>
+    </div>
+
+    {% if complaint.admin_response %}
+    <div class="card" style="border-left: 4px solid #10b981;">
+        <h2 style="margin-bottom: 1rem; color: #10b981;">
+            <i class="fas fa-reply"></i> Réponse de l'administration
+        </h2>
+        
+        {% if complaint.responded_by %}
+        <p style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 0.5rem;">
+            <i class="fas fa-user"></i> Répondu par: <strong>{{ complaint.responded_by.username }}</strong>
+        </p>
+        {% endif %}
+        
+        {% if complaint.responded_at %}
+        <p style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 1rem;">
+            <i class="fas fa-calendar"></i> Le: <strong>{{ complaint.responded_at|date:"d/m/Y à H:i" }}</strong>
+        </p>
+        {% endif %}
+        
+        <div style="background: #f0fdf4; padding: 1rem; border-radius: 6px; margin-top: 1rem;">
+            <p style="line-height: 1.6; white-space: pre-wrap; margin: 0;">{{ complaint.admin_response }}</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="background: #fef3c7; border-left: 4px solid #fbbf24;">
+        <i class="fas fa-hourglass-half" style="color: #fbbf24; margin-right: 0.5rem;"></i>
+        <strong>En attente de réponse</strong>
+        <p style="margin-top: 0.5rem; margin-bottom: 0;">
+            Votre réclamation a été reçue et sera traitée dans les plus brefs délais. Vous recevrez une notification dès qu'un administrateur aura répondu.
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.detail-header h1 {
+    margin: 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.info-item i {
+    font-size: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.info-item strong {
+    display: block;
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.header-with-back {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

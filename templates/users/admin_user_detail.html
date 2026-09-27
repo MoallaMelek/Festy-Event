@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ user_detail.username }} - Détails Utilisateur{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{% url 'users:admin_user_list' %}" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-user-circle"></i> {{ user_detail.username }}</h2>
+                    <p class="text-secondary mb-0">{{ user_detail.email }}</p>
+                </div>
+                <div>
+                    {% if user_detail.is_staff %}
+                        <span class="badge bg-danger fs-6">
+                            <i class="fas fa-user-shield"></i> Administrateur
+                        </span>
+                    {% else %}
+                        <span class="badge bg-primary fs-6">
+                            <i class="fas fa-user"></i> Client
+                        </span>
+                    {% endif %}
+                    {% if user_detail.is_active %}
+                        <span class="badge bg-success fs-6">
+                            <i class="fas fa-check-circle"></i> Actif
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-6">
+                            <i class="fas fa-times-circle"></i> Inactif
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: var(--primary-orange); color: white;">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informations Personnelles</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Prénom:</th>
+                            <td>{{ user_detail.first_name|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Nom:</th>
+                            <td>{{ user_detail.last_name|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Nom d'utilisateur:</th>
+                            <td>{{ user_detail.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ user_detail.email }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: var(--primary-orange); color: white;">
+                    <h5 class="mb-0"><i class="fas fa-cog"></i> Paramètres du Compte</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Date d'inscription:</th>
+                            <td>{{ user_detail.date_joined|date:"d/m/Y à H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Dernière connexion:</th>
+                            <td>
+                                {% if user_detail.last_login %}
+                                    {{ user_detail.last_login|date:"d/m/Y à H:i" }}
+                                {% else %}
+                                    Jamais connecté
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Statut Staff:</th>
+                            <td>
+                                {% if user_detail.is_staff %}
+                                    <span class="badge bg-success">Oui</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Non</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Superutilisateur:</th>
+                            <td>
+                                {% if user_detail.is_superuser %}
+                                    <span class="badge bg-success">Oui</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Non</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Compte actif:</th>
+                            <td>
+                                {% if user_detail.is_active %}
+                                    <span class="badge bg-success">Oui</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Non</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reservation Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0" style="color: var(--primary-orange);">{{ total_reservations }}</h3>
+                    <p class="mb-0 text-secondary">Total Réservations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0" style="color: #4CAF50;">{{ confirmed_reservations }}</h3>
+                    <p class="mb-0 text-secondary">Confirmées</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0" style="color: #f44336;">{{ cancelled_reservations }}</h3>
+                    <p class="mb-0 text-secondary">Annulées</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reservations -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header" style="background-color: var(--primary-orange); color: white;">
+            <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Réservations Récentes</h5>
+        </div>
+        <div class="card-body">
+            {% if recent_reservations %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Événement</th>
+                                <th>Date</th>
+                                <th>Statut</th>
+                                <th>Montant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in recent_reservations %}
+                                <tr>
+                                    <td><strong>{{ reservation.event.title }}</strong></td>
+                                    <td>{{ reservation.reservation_date|date:"d/m/Y à H:i" }}</td>
+                                    <td>
+                                        {% if reservation.status == 'confirmed' %}
+                                            <span class="badge bg-success">Confirmée</span>
+                                        {% elif reservation.status == 'pending' %}
+                                            <span class="badge bg-warning">En attente</span>
+                                        {% elif reservation.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Annulée</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ reservation.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ reservation.total_amount|floatformat:2 }} TND</td>
+                                    <td>
+                                        <a href="{% url 'reservations:detail' reservation.id %}" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <p class="text-secondary">Aucune réservation trouvée</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <a href="{% url 'users:admin_user_update' user_detail.id %}" 
+                       class="btn btn-warning w-100">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <form method="post" action="{% url 'users:admin_user_toggle_status' user_detail.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary w-100">
+                            <i class="fas fa-power-off"></i> 
+                            {% if user_detail.is_active %}Désactiver{% else %}Activer{% endif %}
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="{% url 'users:admin_user_delete' user_detail.id %}" 
+                       class="btn btn-danger w-100">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="{% url 'users:admin_user_list' %}" 
+                       class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-list"></i> Retour à la liste
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmer l'événement{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 2rem auto; padding: 0 1rem;">
+    <div class="card">
+        <div class="card-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 1.5rem;">
+            <h2 style="margin: 0; font-size: 1.8rem;">
+                <i class="fas fa-check-circle"></i> Confirmer l'événement
+            </h2>
+        </div>
+        
+        <div class="card-body" style="padding: 2rem;">
+            <div class="event-info" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid var(--primary-orange);">
+                <h3 style="margin: 0 0 1rem 0; color: var(--text-primary); font-size: 1.3rem;">
+                    {{ event.title }}
+                </h3>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                        <i class="fas fa-tag" style="color: var(--primary-orange); width: 20px;"></i>
+                        <span>{{ event.get_category_display }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                        <i class="fas fa-calendar-alt" style="color: var(--primary-orange); width: 20px;"></i>
+                        <span>{{ event.date|date:"d/m/Y à H:i" }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                        <i class="fas fa-map-marker-alt" style="color: var(--primary-orange); width: 20px;"></i>
+                        <span>{{ event.location }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                        <i class="fas fa-users" style="color: var(--primary-orange); width: 20px;"></i>
+                        <span>{{ event.capacity }} places</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                        <i class="fas fa-money-bill-wave" style="color: var(--primary-orange); width: 20px;"></i>
+                        <span>{{ event.price_per_person }} TND / personne</span>
+                    </div>
+                </div>
+                
+                {% if event.status == 'BROUILLON' %}
+                <div class="status-badge" style="margin-top: 1rem; display: inline-block; padding: 0.5rem 1rem; background: rgba(251, 191, 36, 0.2); border: 2px solid #fbbf24; border-radius: 6px; color: var(--text-primary); font-weight: 600;">
+                    <i class="fas fa-pencil-alt"></i> Statut actuel : Brouillon
+                </div>
+                {% elif event.status == 'CONFIRME' %}
+                <div class="status-badge" style="margin-top: 1rem; display: inline-block; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 2px solid #10b981; border-radius: 6px; color: var(--text-primary); font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> Statut actuel : Confirmé
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if event.status != 'CONFIRME' %}
+            <div class="confirmation-message" style="background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <i class="fas fa-info-circle" style="color: #10b981; font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                    <div>
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Confirmer cet événement</h4>
+                        <p style="margin: 0; color: var(--text-secondary); line-height: 1.6;">
+                            En confirmant cet événement, il sera publié et visible par tous les participants. 
+                            Ils pourront alors effectuer des réservations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" style="margin-top: 2rem;">
+                {% csrf_token %}
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <a href="{% url 'event_detail' event.id %}" 
+                       class="btn btn-secondary" 
+                       style="text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--secondary-black); color: white; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s; display: inline-block;">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-success" 
+                            style="padding: 0.75rem 1.5rem; border-radius: 8px; background: #10b981; color: white; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                        <i class="fas fa-check-circle"></i> Confirmer l'événement
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <div class="already-confirmed" style="background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                <i class="fas fa-check-circle" style="color: #10b981; font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h3 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Événement déjà confirmé</h3>
+                <p style="margin: 0 0 1.5rem 0; color: var(--text-secondary);">
+                    Cet événement est déjà publié et disponible au public.
+                </p>
+                <a href="{% url 'event_detail' event.id %}" 
+                   class="btn btn-primary" 
+                   style="text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--primary-orange); color: white; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s; display: inline-block;">
+                    <i class="fas fa-arrow-left"></i> Retour à l'événement
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <style>
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-success:hover {
+            background: #059669 !important;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary-black) !important;
+        }
+        
+        .btn-primary:hover {
+            background: #ff8559 !important;
+        }
+    </style>
+</div>
+{% endblock %}

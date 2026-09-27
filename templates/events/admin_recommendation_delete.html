@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer une recommandation - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Supprimer la Recommandation</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Attention!</strong><br>
+                        Êtes-vous sûr de vouloir supprimer cette recommandation ?
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5>{{ recommendation.title }}</h5>
+                            <p class="mb-2"><strong>Note:</strong> {{ recommendation.rating }}★</p>
+                            <p class="mb-2"><strong>Événement:</strong> {{ recommendation.event.title }}</p>
+                            <p class="mb-2"><strong>Utilisateur:</strong> {{ recommendation.user.username }}</p>
+                            <p class="mb-0"><strong>Date:</strong> {{ recommendation.created_at|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+
+                    <p class="text-muted">Cette action est irréversible et supprimera définitivement:</p>
+                    <ul class="text-muted">
+                        <li>La recommandation</li>
+                        <li>Tous les votes "Utile" associés</li>
+                        <li>La réponse de l'admin (si présente)</li>
+                    </ul>
+
+                    <form method="post" class="d-flex justify-content-between">
+                        {% csrf_token %}
+                        <a href="{% url 'admin_recommendation_detail' recommendation.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Supprimer définitivement
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

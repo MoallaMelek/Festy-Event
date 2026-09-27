@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Festy Event{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2025111206">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="{% static 'js/theme.js' %}" defer></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="{% url 'event_list' %}" class="navbar-brand">
+            Festy <span>Event</span>
+        </a>
+        <ul class="navbar-nav">
+            <li><a href="{% url 'event_list' %}"><i class="fas fa-calendar"></i> Événements</a></li>
+            {% if user.is_authenticated %}
+                {% if user.is_staff %}
+                    <!-- Navigation Admin -->
+                    <li><a href="{% url 'admin_dashboard' %}" style="color: var(--primary-orange); font-weight: 600;">
+                        <i class="fas fa-chart-line"></i> Dashboard Admin
+                    </a></li>
+                    <li><a href="{% url 'event_create' %}" style="color: var(--primary-orange);">
+                        <i class="fas fa-plus-circle"></i> Créer Événement
+                    </a></li>
+                    <li><a href="{% url 'admin_complaint_list' %}" style="color: var(--primary-orange);">
+                        <i class="fas fa-exclamation-circle"></i> Réclamations
+                    </a></li>
+                    
+                    <li><a href="{% url 'admin_recommendation_list' %}" style="color: var(--primary-orange);">
+                        <i class="fas fa-star"></i> Recommandations
+                    </a></li>
+                    
+                    <li><a href="{% url 'users:admin_user_list' %}" style="color: var(--primary-orange);">
+                        <i class="fas fa-users"></i> Gestion Utilisateurs
+                    </a></li>
+                    
+                    <!-- Menu déroulant Finances -->
+                    <li class="dropdown">
+                        <button class="dropdown-toggle" onclick="toggleDropdown(event)" style="color: var(--primary-orange);">
+                            <i class="fas fa-wallet"></i> Finances <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'admin_payment_list' %}"><i class="fas fa-credit-card"></i> Paiements</a></li>
+                            <li><a href="{% url 'admin_invoice_list' %}"><i class="fas fa-file-invoice"></i> Factures</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Menu déroulant Lieux -->
+                    <li class="dropdown">
+                        <button class="dropdown-toggle" onclick="toggleDropdown(event)" style="color: var(--primary-orange);">
+                            <i class="fas fa-map-marker-alt"></i> Lieux <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'location_list' %}"><i class="fas fa-building"></i> Liste des Lieux</a></li>
+                            <li><a href="{% url 'tunisia_map' %}"><i class="fas fa-map-marked-alt"></i> Carte Tunisie</a></li>
+                        </ul>
+                    </li>
+                    
+                    <li><a href="{% url 'contract_list' %}" style="color: var(--primary-orange);">
+                        <i class="fas fa-file-contract"></i> Contrats
+                    </a></li>
+                {% else %}
+                    <!-- Navigation Utilisateur -->
+                    <li><a href="{% url 'dashboard' %}"><i class="fas fa-chart-line"></i> Mon Tableau de Bord</a></li>
+                    <li><a href="{% url 'reservation_list' %}"><i class="fas fa-ticket-alt"></i> Mes Réservations</a></li>
+                    <li><a href="{% url 'complaint_list' %}"><i class="fas fa-comment-alt"></i> Mes Réclamations</a></li>
+                    <li><a href="{% url 'users:profile' %}"><i class="fas fa-user"></i> Mon Profil</a></li>
+                {% endif %}
+                
+                <!-- Séparateur visuel -->
+                <li style="border-top: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 0;"></li>
+                
+                <!-- Menu déroulant Ressources -->
+                <li class="dropdown">
+                    <button class="dropdown-toggle" onclick="toggleDropdown(event)">
+                        <i class="fas fa-info-circle"></i> Ressources <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'blog_list' %}"><i class="fas fa-blog"></i> Blog</a></li>
+                        <li><a href="{% url 'faq_list' %}"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                        <li><a href="{% url 'contact' %}"><i class="fas fa-envelope"></i> Contact</a></li>
+                    </ul>
+                </li>
+                
+                <!-- Séparateur visuel -->
+                <li style="border-top: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 0;"></li>
+                
+                <li>
+                    <form method="post" action="{% url 'users:logout' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: none; color: var(--text-white); cursor: pointer; padding: 0.5rem 1rem; border-radius: 5px; transition: all 0.3s ease; font-size: 1rem; font-family: inherit; width: 100%; text-align: left;">
+                            <i class="fas fa-sign-out-alt"></i> Déconnexion {% if user.is_staff %}(Admin){% else %}({{ user.username }}){% endif %}
+                        </button>
+                    </form>
+                </li>
+            {% else %}
+                <!-- Menu déroulant Ressources pour invités -->
+                <li class="dropdown">
+                    <button class="dropdown-toggle" onclick="toggleDropdown(event)">
+                        <i class="fas fa-info-circle"></i> Ressources <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'blog_list' %}"><i class="fas fa-blog"></i> Blog</a></li>
+                        <li><a href="{% url 'faq_list' %}"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                        <li><a href="{% url 'contact' %}"><i class="fas fa-envelope"></i> Contact</a></li>
+                    </ul>
+                </li>
+                <li style="border-top: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 0;"></li>
+                <li><a href="{% url 'users:login' %}"><i class="fas fa-sign-in-alt"></i> Connexion</a></li>
+                <li><a href="{% url 'users:register' %}" class="btn btn-primary" style="padding: 0.5rem 1rem;"><i class="fas fa-user-plus"></i> S'inscrire</a></li>
+            {% endif %}
+            <li>
+                <button id="theme-toggle" class="theme-toggle"><i class="fas fa-moon"></i> Mode Sombre</button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container">
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <!-- Contenu principal -->
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Festy Event - Plateforme événementielle Tunisienne</p>
+    </footer>
+    
+    <script>
+    // Fonction pour toggle les dropdowns
+    function toggleDropdown(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const dropdown = event.target.closest('.dropdown');
+        const toggle = dropdown.querySelector('.dropdown-toggle');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        
+        // Fermer tous les autres dropdowns
+        document.querySelectorAll('.dropdown').forEach(d => {
+            if (d !== dropdown) {
+                d.classList.remove('active');
+            }
+        });
+        
+        // Toggle l'état actuel
+        const isCurrentlyActive = dropdown.classList.contains('active');
+        
+        if (isCurrentlyActive) {
+            dropdown.classList.remove('active');
+        } else {
+            // Positionner le menu en dessous du bouton
+            const rect = toggle.getBoundingClientRect();
+            const menuWidth = 220; // min-width du menu
+            
+            // Centrer le menu sous le bouton, ou aligner à gauche si le bouton est étroit
+            let leftPosition = rect.left;
+            
+            // Si le menu dépasse à droite de l'écran, l'ajuster
+            if (leftPosition + menuWidth > window.innerWidth) {
+                leftPosition = window.innerWidth - menuWidth - 20;
+            }
+            
+            menu.style.top = (rect.bottom + 8) + 'px';
+            menu.style.left = leftPosition + 'px';
+            
+            // Ajuster la position du triangle pointer
+            const triangleOffset = rect.left - leftPosition + (rect.width / 2) - 10;
+            menu.style.setProperty('--triangle-offset', Math.max(10, Math.min(triangleOffset, menuWidth - 30)) + 'px');
+            
+            // Activer le dropdown
+            dropdown.classList.add('active');
+        }
+    }
+    
+    // Fermer les dropdowns si on clique ailleurs
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        }
+    });
+    
+    // Empêcher la fermeture si on clique dans le menu
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+    });
+    
+    // Repositionner les menus lors du scroll ou resize
+    function repositionActiveDropdowns() {
+        document.querySelectorAll('.dropdown.active').forEach(dropdown => {
+            const toggle = dropdown.querySelector('.dropdown-toggle');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            const rect = toggle.getBoundingClientRect();
+            menu.style.top = (rect.bottom + 8) + 'px';
+            menu.style.left = rect.left + 'px';
+        });
+    }
+    
+    window.addEventListener('resize', repositionActiveDropdowns);
+    window.addEventListener('scroll', repositionActiveDropdowns);
+    </script>
+</body>
+</html>

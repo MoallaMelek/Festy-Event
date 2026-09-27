@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Détails Recommandation - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{% url 'admin_recommendation_list' %}" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+            <h2><i class="fas fa-star"></i> Détails de la Recommandation</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations principales -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: var(--primary-orange); color: white;">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h4>{{ recommendation.title }}</h4>
+                        <div class="stars mb-2" style="color: #ffc107; font-size: 1.5rem;">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= recommendation.rating %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                            <span class="text-muted">({{ recommendation.rating }}/5)</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Événement:</strong><br>
+                            <a href="{% url 'event_detail' recommendation.event.id %}">
+                                {{ recommendation.event.title }}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Utilisateur:</strong><br>
+                            {{ recommendation.user.get_full_name|default:recommendation.user.username }}
+                            ({{ recommendation.user.email }})
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Commentaire:</strong>
+                        <p class="mt-2">{{ recommendation.comment }}</p>
+                    </div>
+
+                    <!-- Critères détaillés -->
+                    <div class="row text-center mb-3">
+                        <div class="col-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="mb-1">{{ recommendation.organization_rating }}★</h4>
+                                    <small class="text-muted">Organisation</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="mb-1">{{ recommendation.ambiance_rating }}★</h4>
+                                    <small class="text-muted">Ambiance</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="mb-1">{{ recommendation.value_rating }}★</h4>
+                                    <small class="text-muted">Qualité/Prix</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="mb-1">{{ recommendation.venue_rating }}★</h4>
+                                    <small class="text-muted">Lieu</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tags -->
+                    {% if recommendation.tags %}
+                        <div class="mb-3">
+                            <strong>Mots-clés:</strong><br>
+                            {% for tag in recommendation.get_tags_list %}
+                                <span class="badge bg-secondary">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Photo -->
+                    {% if recommendation.photo_url %}
+                        <div class="mb-3">
+                            <strong>Photo:</strong><br>
+                            <img src="{{ recommendation.photo_url }}" alt="Photo" class="img-fluid rounded mt-2" style="max-height: 300px;">
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Recommande:</strong><br>
+                            {% if recommendation.would_recommend %}
+                                <span class="badge bg-success"><i class="fas fa-thumbs-up"></i> Oui</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fas fa-thumbs-down"></i> Non</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Votes "Utile":</strong><br>
+                            {{ recommendation.helpful_count }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Réponse admin -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-reply"></i> Réponse de l'Équipe</h5>
+                </div>
+                <div class="card-body">
+                    {% if recommendation.admin_response %}
+                        <p>{{ recommendation.admin_response }}</p>
+                        <a href="{% url 'admin_recommendation_respond' recommendation.id %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Modifier la réponse
+                        </a>
+                    {% else %}
+                        <p class="text-muted">Aucune réponse pour le moment.</p>
+                        <a href="{% url 'admin_recommendation_respond' recommendation.id %}" class="btn btn-primary">
+                            <i class="fas fa-reply"></i> Répondre
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions et statut -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-cog"></i> Statut</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Statut:</strong><br>
+                        {% if recommendation.is_approved %}
+                            <span class="badge bg-success"><i class="fas fa-check"></i> Approuvée</span>
+                        {% else %}
+                            <span class="badge bg-warning"><i class="fas fa-clock"></i> En attente</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Mise en avant:</strong><br>
+                        {% if recommendation.is_featured %}
+                            <span class="badge bg-warning text-dark"><i class="fas fa-star"></i> Oui</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Non</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Date de création:</strong><br>
+                        {{ recommendation.created_at|date:"d/m/Y à H:i" }}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Dernière modification:</strong><br>
+                        {{ recommendation.updated_at|date:"d/m/Y à H:i" }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-tools"></i> Actions</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'admin_recommendation_approve' recommendation.id %}" class="mb-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn w-100 {% if recommendation.is_approved %}btn-warning{% else %}btn-success{% endif %}">
+                            {% if recommendation.is_approved %}
+                                <i class="fas fa-times-circle"></i> Désapprouver
+                            {% else %}
+                                <i class="fas fa-check-circle"></i> Approuver
+                            {% endif %}
+                        </button>
+                    </form>
+
+                    <form method="post" action="{% url 'admin_recommendation_feature' recommendation.id %}" class="mb-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn w-100 btn-warning">
+                            {% if recommendation.is_featured %}
+                                <i class="fas fa-star-half-alt"></i> Retirer mise en avant
+                            {% else %}
+                                <i class="fas fa-star"></i> Mettre en avant
+                            {% endif %}
+                        </button>
+                    </form>
+
+                    <a href="{% url 'event_detail' recommendation.event.id %}" class="btn btn-info w-100 mb-2">
+                        <i class="fas fa-calendar"></i> Voir l'événement
+                    </a>
+
+                    <a href="{% url 'admin_recommendation_delete' recommendation.id %}" class="btn btn-danger w-100">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

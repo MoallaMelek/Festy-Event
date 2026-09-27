@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Réserver - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
+    <a href="{% url 'event_detail' event.id %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-arrow-left"></i> Retour à l'événement
+    </a>
+    <a href="{% url 'event_list' %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-list"></i> Tous les événements
+    </a>
+</div>
+
+<div class="card">
+    <h1> Réserver pour {{ event.title }}</h1>
+    
+    <div style="background-color: #1a1a1a; padding: 1rem; border-radius: 5px; margin: 1.5rem 0; border-left: 3px solid #ff6b35;">
+        <p><strong> Date:</strong> {{ event.date|date:"l d F Y à H:i" }}</p>
+        <p><strong> Lieu:</strong> {{ event.location }}</p>
+        <p><strong> Prix par personne:</strong> {{ event.price_per_person }} TND</p>
+        <p><strong> Places disponibles:</strong> {{ event.available_seats }} / {{ event.capacity }}</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="number_of_seats">Nombre de places *</label>
+            <input 
+                type="number" 
+                id="number_of_seats" 
+                name="number_of_seats" 
+                class="form-control" 
+                min="1" 
+                max="{{ event.available_seats }}" 
+                value="1" 
+                required
+                oninput="updateTotal()"
+            >
+            <small style="color: #b0b0b0;">Maximum {{ event.available_seats }} place(s)</small>
+        </div>
+
+        <div class="form-group">
+            <label>Prix total</label>
+            <div style="background-color: #ff6b35; color: #1a1a1a; padding: 1rem; border-radius: 5px; font-size: 1.5rem; font-weight: bold; text-align: center;">
+                <span id="total-price">{{ event.price_per_person }}</span> TND
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes (optionnel)</label>
+            <textarea 
+                id="notes" 
+                name="notes" 
+                class="form-control" 
+                placeholder="Informations supplémentaires, demandes spéciales..."
+            ></textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <a href="{% url 'event_detail' event.id %}" class="btn btn-secondary" style="flex: 1; text-align: center;">
+                Annuler
+            </a>
+            <button type="submit" class="btn btn-primary" style="flex: 2;">
+                 Confirmer la réservation
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function updateTotal() {
+    const seats = document.getElementById('number_of_seats').value;
+    const pricePerPerson = {{ event.price_per_person }};
+    const total = seats * pricePerPerson;
+    document.getElementById('total-price').textContent = total.toFixed(2);
+}
+</script>
+{% endblock %}

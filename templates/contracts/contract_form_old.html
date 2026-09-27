@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} un contrat - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'contract_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour aux contrats
+    </a>
+</div>
+
+<div class="form-container">
+    <h1><i class="fas fa-file-contract"></i> {{ action }} un contrat</h1>
+
+    {% if contract and contract.status != 'DRAFT' %}
+        <div class="card" style="background: #fef3c7; border-left: 4px solid #f59e0b; margin-bottom: 1.5rem;">
+            <p style="margin: 0; color: #92400e;">
+                <i class="fas fa-info-circle"></i> Seuls les contrats en brouillon peuvent être modifiés.
+            </p>
+        </div>
+    {% endif %}
+
+    <form method="post" class="event-form">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="error-message">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="form-grid">
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="{{ form.title.id_for_label }}">Titre du contrat *</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="error-message">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.contract_type.id_for_label }}">Type de contrat *</label>
+                {{ form.contract_type }}
+                {% if form.contract_type.errors %}
+                    <div class="error-message">{{ form.contract_type.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.event.id_for_label }}">Événement (optionnel)</label>
+                {{ form.event }}
+                {% if form.event.errors %}
+                    <div class="error-message">{{ form.event.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <h3 style="margin: 1rem 0; color: var(--primary-orange);">
+                    <i class="fas fa-user"></i> Informations client
+                </h3>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.client_name.id_for_label }}">Nom *</label>
+                {{ form.client_name }}
+                {% if form.client_name.errors %}
+                    <div class="error-message">{{ form.client_name.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.client_email.id_for_label }}">Email *</label>
+                {{ form.client_email }}
+                {% if form.client_email.errors %}
+                    <div class="error-message">{{ form.client_email.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.client_phone.id_for_label }}">Téléphone</label>
+                {{ form.client_phone }}
+                {% if form.client_phone.errors %}
+                    <div class="error-message">{{ form.client_phone.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="{{ form.client_address.id_for_label }}">Adresse</label>
+                {{ form.client_address }}
+                {% if form.client_address.errors %}
+                    <div class="error-message">{{ form.client_address.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <h3 style="margin: 1rem 0; color: var(--primary-orange);">
+                    <i class="fas fa-calendar"></i> Dates et montant
+                </h3>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.start_date.id_for_label }}">Date de début *</label>
+                {{ form.start_date }}
+                {% if form.start_date.errors %}
+                    <div class="error-message">{{ form.start_date.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.end_date.id_for_label }}">Date de fin *</label>
+                {{ form.end_date }}
+                {% if form.end_date.errors %}
+                    <div class="error-message">{{ form.end_date.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.amount.id_for_label }}">Montant (TND) *</label>
+                {{ form.amount }}
+                {% if form.amount.errors %}
+                    <div class="error-message">{{ form.amount.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="{{ form.terms.id_for_label }}">Termes et conditions *</label>
+                {{ form.terms }}
+                {% if form.terms.errors %}
+                    <div class="error-message">{{ form.terms.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> {{ action }} le contrat
+            </button>
+            <a href="{% url 'contract_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

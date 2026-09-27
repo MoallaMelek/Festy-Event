@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Lieux - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1><i class="fas fa-map-marker-alt"></i> Gestion des Lieux</h1>
+    <a href="{% url 'location_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Ajouter un lieu
+    </a>
+</div>
+
+<!-- Statistics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <i class="fas fa-map-marker-alt"></i>
+        <div>
+            <h3>{{ total_locations }}</h3>
+            <p>Total lieux</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-color: #10b981;">
+        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+        <div>
+            <h3>{{ available_count }}</h3>
+            <p>Disponibles</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-color: #f59e0b;">
+        <i class="fas fa-clock" style="color: #f59e0b;"></i>
+        <div>
+            <h3>{{ occupied_count }}</h3>
+            <p>Occupés</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-card">
+    <h2><i class="fas fa-filter"></i> Filtres</h2>
+    <form method="get" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+            <label for="status">Statut:</label>
+            <select name="status" id="status" onchange="this.form.submit()">
+                <option value="">Tous</option>
+                <option value="AVAILABLE" {% if status_filter == 'AVAILABLE' %}selected{% endif %}>Disponible</option>
+                <option value="OCCUPIED" {% if status_filter == 'OCCUPIED' %}selected{% endif %}>Occupé</option>
+                <option value="MAINTENANCE" {% if status_filter == 'MAINTENANCE' %}selected{% endif %}>Maintenance</option>
+                <option value="UNAVAILABLE" {% if status_filter == 'UNAVAILABLE' %}selected{% endif %}>Indisponible</option>
+            </select>
+        </div>
+        <div>
+            <label for="type">Type:</label>
+            <select name="type" id="type" onchange="this.form.submit()">
+                <option value="">Tous</option>
+                <option value="INDOOR" {% if type_filter == 'INDOOR' %}selected{% endif %}>Intérieur</option>
+                <option value="OUTDOOR" {% if type_filter == 'OUTDOOR' %}selected{% endif %}>Extérieur</option>
+                <option value="HYBRID" {% if type_filter == 'HYBRID' %}selected{% endif %}>Hybride</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- Locations List -->
+<div class="locations-grid">
+    {% for location in locations %}
+        <div class="card" style="border-left: 4px solid {% if location.status == 'AVAILABLE' %}#10b981{% elif location.status == 'OCCUPIED' %}#f59e0b{% elif location.status == 'MAINTENANCE' %}#3b82f6{% else %}#6b7280{% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <h3 style="margin: 0; color: var(--primary-orange);">
+                    <i class="fas fa-map-marker-alt"></i> {{ location.name }}
+                </h3>
+                <span class="badge" style="background: {% if location.status == 'AVAILABLE' %}#10b981{% elif location.status == 'OCCUPIED' %}#f59e0b{% elif location.status == 'MAINTENANCE' %}#3b82f6{% else %}#6b7280{% endif %}; color: white;">
+                    {{ location.get_status_display }}
+                </span>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <p style="margin: 0.5rem 0;">
+                    <i class="fas fa-building"></i> <strong>Type:</strong> {{ location.get_location_type_display }}
+                </p>
+                <p style="margin: 0.5rem 0;">
+                    <i class="fas fa-map-pin"></i> <strong>Ville:</strong> {{ location.city }}
+                </p>
+                <p style="margin: 0.5rem 0;">
+                    <i class="fas fa-users"></i> <strong>Capacité:</strong> {{ location.capacity }} personnes
+                </p>
+                {% if location.daily_rate %}
+                <p style="margin: 0.5rem 0;">
+                    <i class="fas fa-coins"></i> <strong>Tarif journalier:</strong> {{ location.daily_rate|floatformat:3 }} TND
+                </p>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="{% url 'location_detail' location.id %}" class="btn btn-secondary" style="flex: 1; text-align: center; text-decoration: none;">
+                    <i class="fas fa-eye"></i> Voir détails
+                </a>
+                <a href="{% url 'location_update' location.id %}" class="btn" style="flex: 1; text-align: center; text-decoration: none; background: var(--primary-orange); color: white;">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="card" style="grid-column: 1 / -1; text-align: center;">
+            <i class="fas fa-map-marker-alt" style="font-size: 3rem; color: var(--text-gray); margin-bottom: 1rem;"></i>
+            <p style="color: var(--text-gray);">Aucun lieu trouvé.</p>
+            <a href="{% url 'location_create' %}" class="btn btn-primary" style="text-decoration: none; display: inline-block; margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Ajouter le premier lieu
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+.locations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}

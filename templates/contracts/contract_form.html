@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} un contrat - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'contract_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour aux contrats
+    </a>
+</div>
+
+<div class="form-container" style="max-width: 1000px; margin: 0 auto;">
+    <h1><i class="fas fa-file-contract"></i> {{ action }} un contrat</h1>
+
+    {% if contract and contract.status != 'DRAFT' %}
+        <div class="alert alert-warning" style="background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <i class="fas fa-info-circle"></i> Seuls les contrats en brouillon peuvent être modifiés.
+        </div>
+    {% endif %}
+
+    <form method="post" class="modern-form">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- Section: Informations générales -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-file-alt"></i> Informations du contrat
+            </h2>
+            <div class="form-grid-2">
+                <div class="form-group full-width">
+                    <label for="{{ form.title.id_for_label }}">
+                        <i class="fas fa-heading"></i> Titre du contrat *
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="error-message">{{ form.title.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.contract_type.id_for_label }}">
+                        <i class="fas fa-tag"></i> Type de contrat *
+                    </label>
+                    {{ form.contract_type }}
+                    {% if form.contract_type.errors %}
+                        <div class="error-message">{{ form.contract_type.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.event.id_for_label }}">
+                        <i class="fas fa-calendar"></i> Événement (optionnel)
+                    </label>
+                    {{ form.event }}
+                    <small style="color: var(--text-gray); display: block; margin-top: 0.5rem;">
+                        Associer ce contrat à un événement spécifique
+                    </small>
+                    {% if form.event.errors %}
+                        <div class="error-message">{{ form.event.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Informations client -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-user"></i> Informations client
+            </h2>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label for="{{ form.client_name.id_for_label }}">
+                        <i class="fas fa-user-circle"></i> Nom complet *
+                    </label>
+                    {{ form.client_name }}
+                    {% if form.client_name.errors %}
+                        <div class="error-message">{{ form.client_name.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.client_email.id_for_label }}">
+                        <i class="fas fa-envelope"></i> Email *
+                    </label>
+                    {{ form.client_email }}
+                    {% if form.client_email.errors %}
+                        <div class="error-message">{{ form.client_email.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.client_phone.id_for_label }}">
+                        <i class="fas fa-phone"></i> Téléphone
+                    </label>
+                    {{ form.client_phone }}
+                    {% if form.client_phone.errors %}
+                        <div class="error-message">{{ form.client_phone.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="{{ form.client_address.id_for_label }}">
+                        <i class="fas fa-map-marker-alt"></i> Adresse
+                    </label>
+                    {{ form.client_address }}
+                    {% if form.client_address.errors %}
+                        <div class="error-message">{{ form.client_address.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Période et montant -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-calendar-alt"></i> Période et montant
+            </h2>
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label for="{{ form.start_date.id_for_label }}">
+                        <i class="fas fa-calendar-plus"></i> Date de début *
+                    </label>
+                    {{ form.start_date }}
+                    {% if form.start_date.errors %}
+                        <div class="error-message">{{ form.start_date.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.end_date.id_for_label }}">
+                        <i class="fas fa-calendar-minus"></i> Date de fin *
+                    </label>
+                    {{ form.end_date }}
+                    {% if form.end_date.errors %}
+                        <div class="error-message">{{ form.end_date.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.amount.id_for_label }}">
+                        <i class="fas fa-dollar-sign"></i> Montant (TND) *
+                    </label>
+                    {{ form.amount }}
+                    {% if form.amount.errors %}
+                        <div class="error-message">{{ form.amount.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Termes et conditions -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-file-signature"></i> Termes et conditions
+            </h2>
+            <div class="form-group">
+                <label for="{{ form.terms.id_for_label }}">
+                    <i class="fas fa-list-ul"></i> Conditions du contrat *
+                </label>
+                {{ form.terms }}
+                <small style="color: var(--text-gray); display: block; margin-top: 0.5rem;">
+                    Décrivez les termes, conditions, obligations et clauses du contrat
+                </small>
+                {% if form.terms.errors %}
+                    <div class="error-message">{{ form.terms.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> {{ action }} le contrat
+            </button>
+            <a href="{% url 'contract_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+.modern-form {
+    margin-top: 2rem;
+}
+
+.form-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.section-title {
+    color: var(--primary-orange);
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary-orange);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.form-group label i {
+    color: var(--primary-orange);
+    margin-right: 0.5rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.1);
+}
+
+.form-group textarea {
+    min-height: 150px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+    padding-top: 1rem;
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.alert-error {
+    background: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #991b1b;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .form-section {
+        padding: 1.5rem;
+    }
+    
+    .form-grid-2,
+    .form-grid-3 {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

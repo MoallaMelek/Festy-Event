@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} - Blog Festy Event{% endblock %}
+
+{% block content %}
+<style>
+.post-header {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    padding: 3rem 0;
+    color: white;
+    text-align: center;
+}
+
+.post-content {
+    max-width: 900px;
+    margin: 3rem auto;
+    padding: 0 2rem;
+}
+
+.post-body {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    line-height: 1.8;
+}
+
+.post-body h1, .post-body h2, .post-body h3 {
+    color: #fb923c;
+    margin-top: 2rem;
+}
+
+.comment-box {
+    background: #f9fafb;
+    border-left: 4px solid #fb923c;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+}
+</style>
+
+<div class="post-header">
+    <div style="max-width: 900px; margin: 0 auto; padding: 0 2rem;">
+        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; display: inline-block; margin-bottom: 1rem;">
+            <i class="{{ post.category.icon }}"></i> {{ post.category.name }}
+        </span>
+        <h1 style="margin: 1rem 0; font-size: 2.5rem;">{{ post.title }}</h1>
+        <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; opacity: 0.9;">
+            <span><i class="fas fa-user"></i> {{ post.author.username }}</span>
+            <span><i class="fas fa-calendar"></i> {{ post.published_at|date:"d F Y" }}</span>
+            <span><i class="fas fa-eye"></i> {{ post.views_count }} vues</span>
+            <span><i class="fas fa-comment"></i> {{ comments.count }} commentaires</span>
+        </div>
+    </div>
+</div>
+
+<div class="post-content">
+    <div class="post-body">
+        {{ post.content|linebreaks }}
+
+        {% if post.tags %}
+        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e5e7eb;">
+            <strong>Tags :</strong>
+            {% for tag in post.get_tags_list %}
+            <span style="background: #fff7ed; color: #fb923c; padding: 0.25rem 0.75rem; border-radius: 20px; display: inline-block; margin: 0.25rem; font-size: 0.85rem;">
+                #{{ tag }}
+            </span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Commentaires -->
+    <div style="margin-top: 3rem;">
+        <h2><i class="fas fa-comments"></i> Commentaires ({{ comments.count }})</h2>
+
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'add_blog_comment' post.slug %}" class="card" style="padding: 2rem; margin: 2rem 0;">
+            {% csrf_token %}
+            <h3 style="margin-top: 0;">Laisser un commentaire</h3>
+            <textarea name="content" rows="4" required style="width: 100%; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; resize: vertical;" placeholder="Votre commentaire..."></textarea>
+            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">
+                <i class="fas fa-paper-plane"></i> Publier
+            </button>
+        </form>
+        {% else %}
+        <div class="card" style="padding: 2rem; text-align: center; background: #eff6ff;">
+            <p style="margin: 0;"><i class="fas fa-info-circle"></i> <a href="{% url 'users:login' %}">Connectez-vous</a> pour laisser un commentaire</p>
+        </div>
+        {% endif %}
+
+        {% for comment in comments %}
+        <div class="comment-box">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                <strong style="color: #fb923c;"><i class="fas fa-user-circle"></i> {{ comment.author.username }}</strong>
+                <span style="font-size: 0.85rem; color: #6b7280;">{{ comment.created_at|date:"d M Y H:i" }}</span>
+            </div>
+            <p style="margin: 0;">{{ comment.content }}</p>
+        </div>
+        {% empty %}
+        <p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun commentaire pour le moment. Soyez le premier à commenter !</p>
+        {% endfor %}
+    </div>
+
+    <!-- Articles similaires -->
+    {% if related_posts %}
+    <div style="margin-top: 3rem;">
+        <h2><i class="fas fa-newspaper"></i> Articles similaires</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            {% for related in related_posts %}
+            <a href="{% url 'blog_detail' related.slug %}" style="text-decoration: none;">
+                <div class="card" style="padding: 1.5rem; transition: all 0.3s;">
+                    <h4 style="color: #111827; margin: 0 0 0.5rem 0;">{{ related.title }}</h4>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">{{ related.excerpt|truncatewords:15 }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

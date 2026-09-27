@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Utilisateurs - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-users"></i> Gestion des Utilisateurs</h2>
+            <p class="text-secondary">Gérez tous les utilisateurs de la plateforme</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0" style="color: var(--primary-orange);">{{ total_users }}</h3>
+                    <p class="mb-0 text-secondary">Total Utilisateurs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0" style="color: #4CAF50;">{{ admin_count }}</h3>
+                    <p class="mb-0 text-secondary">Administrateurs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0" style="color: #2196F3;">{{ client_count }}</h3>
+                    <p class="mb-0 text-secondary">Clients</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0" style="color: #4CAF50;">{{ active_count }}</h3>
+                    <p class="mb-0 text-secondary">Actifs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="user_type" class="form-label">Type d'utilisateur</label>
+                    <select name="user_type" id="user_type" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="admin" {% if request.GET.user_type == 'admin' %}selected{% endif %}>Administrateurs</option>
+                        <option value="client" {% if request.GET.user_type == 'client' %}selected{% endif %}>Clients</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Statut</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Actifs</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactifs</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Rechercher</label>
+                    <input type="text" name="search" id="search" class="form-control" 
+                           placeholder="Nom, email..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create New User Button -->
+    <div class="mb-3 text-end">
+        <a href="{% url 'users:admin_user_create' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Créer un Utilisateur
+        </a>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if users %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nom d'utilisateur</th>
+                                <th>Email</th>
+                                <th>Nom Complet</th>
+                                <th>Rôle</th>
+                                <th>Statut</th>
+                                <th>Réservations</th>
+                                <th>Date d'inscription</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                                <tr>
+                                    <td><strong>{{ user.username }}</strong></td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.get_full_name|default:"-" }}</td>
+                                    <td>
+                                        {% if user.is_staff %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-user-shield"></i> Admin
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-user"></i> Client
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle"></i> Actif
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times-circle"></i> Inactif
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ user.reservation_count }}</span>
+                                    </td>
+                                    <td>{{ user.date_joined|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'users:admin_user_detail' user.id %}" 
+                                               class="btn btn-sm btn-info" title="Voir détails">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'users:admin_user_update' user.id %}" 
+                                               class="btn btn-sm btn-warning" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'users:admin_user_delete' user.id %}" 
+                                               class="btn btn-sm btn-danger" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            <form method="post" action="{% url 'users:admin_user_toggle_status' user.id %}" 
+                                                  style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-secondary" 
+                                                        title="{% if user.is_active %}Désactiver{% else %}Activer{% endif %}">
+                                                    <i class="fas fa-power-off"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if users.has_other_pages %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if users.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ users.previous_page_number }}{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in users.paginator.page_range %}
+                                {% if users.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if users.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ users.next_page_number }}{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ users.paginator.num_pages }}{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <p class="text-secondary">Aucun utilisateur trouvé</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

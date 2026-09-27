@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Ma Facture - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'reservation_detail' invoice.reservation.id %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour à ma réservation
+    </a>
+    <a href="{% url 'download_invoice_pdf' invoice.id %}" class="btn" style="background: #ef4444; color: white; text-decoration: none;">
+        <i class="fas fa-file-pdf"></i> Télécharger PDF
+    </a>
+</div>
+
+<div class="detail-container">
+    <div class="detail-header">
+        <h1>
+            <i class="fas fa-file-invoice"></i> Facture {{ invoice.invoice_number }}
+        </h1>
+        <span class="badge" style="background: {% if invoice.status == 'PAID' %}#10b981{% elif invoice.status == 'ISSUED' %}#3b82f6{% else %}#6b7280{% endif %}; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600;">
+            {{ invoice.get_status_display }}
+        </span>
+    </div>
+
+    <!-- Informations de facturation -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-info-circle"></i> Détails de la facture
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-calendar-alt" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Événement</strong>
+                    <p>{{ invoice.reservation.event.title }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-calendar" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Date de l'événement</strong>
+                    <p>{{ invoice.reservation.event.date|date:"d/m/Y à H:i" }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-users" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Nombre de places</strong>
+                    <p>{{ invoice.reservation.number_of_seats }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-calendar-check" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Date d'émission</strong>
+                    <p>{{ invoice.issued_date|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détails des montants -->
+    <div class="card" style="margin-bottom: 1.5rem; background: #f8fafc;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-calculator"></i> Détail des montants
+        </h2>
+        
+        <div style="font-size: 1.1rem;">
+            <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #e5e7eb;">
+                <span>Montant HT</span>
+                <span style="font-weight: bold;">{{ invoice.reservation.total_price|floatformat:3 }} TND</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #e5e7eb;">
+                <span>TVA (19%)</span>
+                <span style="font-weight: bold;">{{ invoice.tax_amount|floatformat:3 }} TND</span>
+            </div>
+            
+            {% if invoice.discount_amount > 0 %}
+            <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #e5e7eb; color: #10b981;">
+                <span>Remise</span>
+                <span style="font-weight: bold;">- {{ invoice.discount_amount|floatformat:3 }} TND</span>
+            </div>
+            {% endif %}
+            
+            <div style="display: flex; justify-content: space-between; padding: 1.5rem 0; font-size: 1.5rem; color: var(--primary-orange);">
+                <span style="font-weight: bold;">Montant Total TTC</span>
+                <span style="font-weight: bold;">{{ invoice.total_amount|floatformat:3 }} TND</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historique des paiements -->
+    {% if payments %}
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-history"></i> Historique des paiements
+        </h2>
+        
+        {% for payment in payments %}
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; border-left: 4px solid {% if payment.status == 'COMPLETED' %}#10b981{% elif payment.status == 'FAILED' %}#e74c3c{% else %}#f59e0b{% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <div style="font-weight: bold; margin-bottom: 0.25rem;">{{ payment.transaction_id }}</div>
+                    <div style="color: #6b7280; font-size: 0.9rem;">
+                        {{ payment.get_payment_method_display }} - 
+                        {{ payment.created_at|date:"d/m/Y à H:i" }}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 1.3rem; font-weight: bold; color: {% if payment.status == 'COMPLETED' %}#10b981{% elif payment.status == 'FAILED' %}#e74c3c{% else %}#f59e0b{% endif %};">
+                        {{ payment.amount|floatformat:3 }} TND
+                    </div>
+                    <span class="badge" style="background: {% if payment.status == 'COMPLETED' %}#10b981{% elif payment.status == 'FAILED' %}#e74c3c{% else %}#f59e0b{% endif %}; color: white;">
+                        {{ payment.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    {% if invoice.status != 'PAID' %}
+    <div class="card" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
+        <h2 style="margin-bottom: 1rem; color: #92400e;">
+            <i class="fas fa-exclamation-triangle"></i> Facture non payée
+        </h2>
+        <p style="margin-bottom: 1.5rem; color: #92400e;">
+            Cette facture n'est pas encore entièrement payée. Veuillez effectuer le paiement pour finaliser votre réservation.
+        </p>
+        <a href="{% url 'client_pay_invoice' invoice.id %}" class="btn btn-primary" style="text-decoration: none; display: inline-block;">
+            <i class="fas fa-credit-card"></i> Payer maintenant
+        </a>
+    </div>
+    {% else %}
+    <div class="card" style="background: #d1fae5; border-left: 4px solid #10b981;">
+        <h2 style="margin-bottom: 1rem; color: #065f46;">
+            <i class="fas fa-check-circle"></i> Facture payée
+        </h2>
+        <p style="margin: 0; color: #065f46;">
+            Cette facture a été payée intégralement. Merci pour votre paiement !
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.detail-header h1 {
+    margin: 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.info-item i {
+    font-size: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.info-item strong {
+    display: block;
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.header-with-back {
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+</style>
+{% endblock %}

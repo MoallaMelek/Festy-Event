@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact - Festy Event{% endblock %}
+
+{% block content %}
+<style>
+.contact-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    padding: 3rem 0;
+    color: white;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.contact-info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.contact-info-card i {
+    font-size: 3rem;
+    color: #fb923c;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 968px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="contact-header">
+    <h1><i class="fas fa-envelope"></i> Contactez-nous</h1>
+    <p>Notre équipe est à votre écoute</p>
+</div>
+
+<div class="contact-grid">
+    <div>
+        <div class="card" style="padding: 2rem;">
+            <h2 style="color: #fb923c; margin-top: 0;">Envoyez-nous un message</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div style="margin-bottom: 1rem;">
+                    <label for="name" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nom complet *</label>
+                    <input type="text" id="name" name="name" required style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Email *</label>
+                    <input type="email" id="email" name="email" required style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label for="phone" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Téléphone</label>
+                    <input type="tel" id="phone" name="phone" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label for="subject" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Sujet *</label>
+                    <input type="text" id="subject" name="subject" required style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label for="message" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Message *</label>
+                    <textarea id="message" name="message" required rows="6" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; resize: vertical;"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    <i class="fas fa-paper-plane"></i> Envoyer le message
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <div class="contact-info-card" style="margin-bottom: 2rem;">
+            <i class="fas fa-map-marker-alt"></i>
+            <h3 style="color: #111827;">Adresse</h3>
+            <p style="color: #6b7280;">Avenue Habib Bourguiba<br>Tunis 1000, Tunisie</p>
+        </div>
+
+        <div class="contact-info-card" style="margin-bottom: 2rem;">
+            <i class="fas fa-phone"></i>
+            <h3 style="color: #111827;">Téléphone</h3>
+            <p style="color: #6b7280;">+216 71 123 456<br>+216 98 765 432</p>
+        </div>
+
+        <div class="contact-info-card" style="margin-bottom: 2rem;">
+            <i class="fas fa-envelope"></i>
+            <h3 style="color: #111827;">Email</h3>
+            <p style="color: #6b7280;">contact@festyevent.tn<br>support@festyevent.tn</p>
+        </div>
+
+        <div class="contact-info-card">
+            <i class="fas fa-clock"></i>
+            <h3 style="color: #111827;">Horaires</h3>
+            <p style="color: #6b7280;">
+                Lundi - Vendredi : 9h00 - 18h00<br>
+                Samedi : 9h00 - 13h00<br>
+                Dimanche : Fermé
+            </p>
+        </div>
+    </div>
+</div>
+
+<div style="max-width: 1200px; margin: 3rem auto 0; padding: 0 2rem;">
+    <div class="card" style="padding: 2rem; text-align: center; background: #eff6ff;">
+        <h3 style="color: #2563eb; margin-top: 0;"><i class="fas fa-question-circle"></i> Besoin d'aide rapide ?</h3>
+        <p style="color: #6b7280;">Consultez notre FAQ pour des réponses immédiates</p>
+        <a href="{% url 'faq_list' %}" class="btn" style="background: #2563eb; color: white;">
+            <i class="fas fa-book"></i> Voir la FAQ
+        </a>
+    </div>
+</div>
+{% endblock %}

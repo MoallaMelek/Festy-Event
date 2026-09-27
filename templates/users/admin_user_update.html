@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modifier {{ user_detail.username }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <a href="{% url 'users:admin_user_detail' user_detail.id %}" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Retour aux détails
+            </a>
+
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: var(--primary-orange); color: white;">
+                    <h4 class="mb-0"><i class="fas fa-user-edit"></i> Modifier l'Utilisateur</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                Nom d'utilisateur <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   value="{{ user_detail.username }}" required>
+                            <small class="form-text text-muted">
+                                150 caractères maximum. Lettres, chiffres et @/./+/-/_ uniquement.
+                            </small>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                Email <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user_detail.email }}" required>
+                        </div>
+
+                        <!-- First Name -->
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">Prénom</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ user_detail.first_name }}">
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Nom</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ user_detail.last_name }}">
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Role Settings -->
+                        <h5 class="mb-3">Paramètres du Rôle</h5>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="is_staff" name="is_staff" 
+                                       {% if user_detail.is_staff %}checked{% endif %}>
+                                <label class="form-check-label" for="is_staff">
+                                    <strong>Staff</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        Peut accéder à l'interface d'administration
+                                    </small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="is_superuser" name="is_superuser" 
+                                       {% if user_detail.is_superuser %}checked{% endif %}>
+                                <label class="form-check-label" for="is_superuser">
+                                    <strong>Superutilisateur</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        A toutes les permissions sans les assigner explicitement
+                                    </small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                                       {% if user_detail.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    <strong>Compte actif</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        Désactiver au lieu de supprimer le compte
+                                    </small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Password Change -->
+                        <h5 class="mb-3">Changer le Mot de Passe (Optionnel)</h5>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Laissez vide pour conserver le mot de passe actuel
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">Nouveau mot de passe</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" 
+                                   placeholder="Laissez vide pour ne pas changer">
+                            <small class="form-text text-muted">
+                                Au moins 8 caractères, ne peut pas être entièrement numérique
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="confirm_password" class="form-label">Confirmer le nouveau mot de passe</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                   placeholder="Laissez vide pour ne pas changer">
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'users:admin_user_detail' user_detail.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Enregistrer les Modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

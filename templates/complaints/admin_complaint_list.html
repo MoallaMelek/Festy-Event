@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Réclamations - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1><i class="fas fa-tasks"></i> Gestion des Réclamations</h1>
+    <p style="color: var(--text-gray);">Vue d'ensemble et traitement des réclamations utilisateurs</p>
+</div>
+
+<!-- Statistiques globales -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <h3 style="color: var(--primary-orange); margin-bottom: 0.5rem;">{{ total_complaints }}</h3>
+        <p style="color: var(--text-gray);">Total réclamations</p>
+    </div>
+    <div class="card">
+        <h3 style="color: #fbbf24; margin-bottom: 0.5rem;">{{ new_complaints }}</h3>
+        <p style="color: var(--text-gray);">Nouvelles</p>
+    </div>
+    <div class="card">
+        <h3 style="color: #3b82f6; margin-bottom: 0.5rem;">{{ in_progress }}</h3>
+        <p style="color: var(--text-gray);">En cours</p>
+    </div>
+    <div class="card">
+        <h3 style="color: #10b981; margin-bottom: 0.5rem;">{{ resolved }}</h3>
+        <p style="color: var(--text-gray);">Résolues</p>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <h3 style="margin-bottom: 1rem;"><i class="fas fa-filter"></i> Filtres</h3>
+    <form method="get" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end;">
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                <i class="fas fa-info-circle"></i> Statut
+            </label>
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">Tous les statuts</option>
+                <option value="NEW" {% if request.GET.status == 'NEW' %}selected{% endif %}>Nouvelles</option>
+                <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>En cours</option>
+                <option value="RESOLVED" {% if request.GET.status == 'RESOLVED' %}selected{% endif %}>Résolues</option>
+                <option value="CLOSED" {% if request.GET.status == 'CLOSED' %}selected{% endif %}>Fermées</option>
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                <i class="fas fa-exclamation-triangle"></i> Priorité
+            </label>
+            <select name="priority" class="filter-select" onchange="this.form.submit()">
+                <option value="">Toutes les priorités</option>
+                <option value="LOW" {% if request.GET.priority == 'LOW' %}selected{% endif %}>Basse</option>
+                <option value="MEDIUM" {% if request.GET.priority == 'MEDIUM' %}selected{% endif %}>Moyenne</option>
+                <option value="HIGH" {% if request.GET.priority == 'HIGH' %}selected{% endif %}>Haute</option>
+                <option value="URGENT" {% if request.GET.priority == 'URGENT' %}selected{% endif %}>Urgente</option>
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                <i class="fas fa-tag"></i> Catégorie
+            </label>
+            <select name="category" class="filter-select" onchange="this.form.submit()">
+                <option value="">Toutes les catégories</option>
+                <option value="RESERVATION" {% if request.GET.category == 'RESERVATION' %}selected{% endif %}>Réservation</option>
+                <option value="PAYMENT" {% if request.GET.category == 'PAYMENT' %}selected{% endif %}>Paiement</option>
+                <option value="EVENT" {% if request.GET.category == 'EVENT' %}selected{% endif %}>Événement</option>
+                <option value="SERVICE" {% if request.GET.category == 'SERVICE' %}selected{% endif %}>Service</option>
+                <option value="TECHNICAL" {% if request.GET.category == 'TECHNICAL' %}selected{% endif %}>Technique</option>
+                <option value="OTHER" {% if request.GET.category == 'OTHER' %}selected{% endif %}>Autre</option>
+            </select>
+        </div>
+
+        {% if request.GET.status or request.GET.priority or request.GET.category %}
+        <div>
+            <a href="{% url 'admin_complaint_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Réinitialiser
+            </a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Liste des réclamations -->
+{% if complaints %}
+    <div style="display: grid; gap: 1rem;">
+        {% for complaint in complaints %}
+            <div class="card" style="border-left: 4px solid {{ complaint.get_priority_color }};">
+                <div style="display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <h3 style="margin: 0;">
+                                <i class="fas fa-hashtag"></i>{{ complaint.id }} - {{ complaint.subject }}
+                            </h3>
+                        </div>
+                        
+                        <p style="color: var(--text-gray); margin-bottom: 1rem;">
+                            {{ complaint.description|truncatewords:25 }}
+                        </p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; font-size: 0.9rem;">
+                            <div>
+                                <i class="fas fa-user" style="color: var(--primary-orange);"></i>
+                                <strong>Utilisateur:</strong> {{ complaint.user.username }}
+                            </div>
+                            <div>
+                                <i class="fas fa-tag" style="color: var(--primary-orange);"></i>
+                                <strong>Catégorie:</strong> {{ complaint.get_category_display }}
+                            </div>
+                            <div>
+                                <i class="fas fa-clock" style="color: var(--primary-orange);"></i>
+                                <strong>Créée:</strong> {{ complaint.created_at|date:"d/m/Y H:i" }}
+                            </div>
+                            {% if complaint.responded_at %}
+                            <div style="color: #10b981;">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>Répondue:</strong> {{ complaint.responded_at|date:"d/m/Y" }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; min-width: 180px;">
+                        <span class="badge" style="background: {{ complaint.get_status_color }}; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; width: 100%; text-align: center;">
+                            {{ complaint.get_status_display }}
+                        </span>
+                        <span class="badge" style="background: {{ complaint.get_priority_color }}; color: white; padding: 0.5rem 1rem; border-radius: 6px; width: 100%; text-align: center;">
+                            <i class="fas fa-exclamation-circle"></i> {{ complaint.get_priority_display }}
+                        </span>
+                        
+                        <a href="{% url 'admin_complaint_respond' complaint.id %}" 
+                           class="btn btn-primary" 
+                           style="text-decoration: none; padding: 0.75rem 1rem; margin-top: 0.5rem; width: 100%; text-align: center;">
+                            {% if complaint.admin_response %}
+                                <i class="fas fa-edit"></i> Modifier réponse
+                            {% else %}
+                                <i class="fas fa-reply"></i> Répondre
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox" style="font-size: 4rem; color: var(--text-gray); margin-bottom: 1rem;"></i>
+        <h3>Aucune réclamation trouvée</h3>
+        <p>
+            {% if request.GET.status or request.GET.priority or request.GET.category %}
+                Aucune réclamation ne correspond aux filtres sélectionnés.
+            {% else %}
+                Aucune réclamation n'a été soumise pour le moment.
+            {% endif %}
+        </p>
+        {% if request.GET.status or request.GET.priority or request.GET.category %}
+        <a href="{% url 'admin_complaint_list' %}" class="btn btn-secondary" style="text-decoration: none; margin-top: 1rem;">
+            <i class="fas fa-times"></i> Réinitialiser les filtres
+        </a>
+        {% endif %}
+    </div>
+{% endif %}
+
+<style>
+.filter-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+}
+</style>
+{% endblock %}

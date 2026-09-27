@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendrier - {{ location.name }} - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'location_detail' location.id %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour au lieu
+    </a>
+</div>
+
+<div style="max-width: 1200px; margin: 0 auto;">
+    <h1><i class="fas fa-calendar-alt"></i> Calendrier - {{ location.name }}</h1>
+    
+    <!-- Statistiques du mois -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0;">
+        <div class="card" style="background: #dbeafe;">
+            <h3 style="color: #1e40af; margin: 0 0 0.5rem 0;">{{ total_days }}</h3>
+            <p style="margin: 0; color: #1e40af;">Jours total</p>
+        </div>
+        <div class="card" style="background: #fecaca;">
+            <h3 style="color: #991b1b; margin: 0 0 0.5rem 0;">{{ occupied_days }}</h3>
+            <p style="margin: 0; color: #991b1b;">Jours occupés</p>
+        </div>
+        <div class="card" style="background: #fed7aa;">
+            <h3 style="color: #9a3412; margin: 0 0 0.5rem 0;">{{ blocked_days }}</h3>
+            <p style="margin: 0; color: #9a3412;">Jours bloqués</p>
+        </div>
+        <div class="card" style="background: #d1fae5;">
+            <h3 style="color: #065f46; margin: 0 0 0.5rem 0;">{{ free_days }}</h3>
+            <p style="margin: 0; color: #065f46;">Jours libres</p>
+        </div>
+        <div class="card" style="background: #fef3c7;">
+            <h3 style="color: #92400e; margin: 0 0 0.5rem 0;">{{ occupation_rate }}%</h3>
+            <p style="margin: 0; color: #92400e;">Taux d'occupation</p>
+        </div>
+    </div>
+    
+    <!-- Navigation mois -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0;">
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-secondary">
+            <i class="fas fa-chevron-left"></i> Mois précédent
+        </a>
+        <h2 style="margin: 0; color: var(--primary-orange);">
+            {{ month_name_fr }} {{ year }}
+        </h2>
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-secondary">
+            Mois suivant <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+    
+    <!-- Calendrier -->
+    <div class="calendar-grid">
+        <!-- En-têtes des jours -->
+        <div class="calendar-header">Lundi</div>
+        <div class="calendar-header">Mardi</div>
+        <div class="calendar-header">Mercredi</div>
+        <div class="calendar-header">Jeudi</div>
+        <div class="calendar-header">Vendredi</div>
+        <div class="calendar-header" style="color: var(--primary-orange);">Samedi</div>
+        <div class="calendar-header" style="color: var(--primary-orange);">Dimanche</div>
+        
+        <!-- Espaces vides pour aligner le premier jour -->
+        {% for i in "x"|rjust:first_weekday %}
+            <div class="calendar-day empty"></div>
+        {% endfor %}
+        
+        <!-- Jours du mois -->
+        {% for day in days %}
+            <div class="calendar-day {% if day.is_today %}today{% endif %} {% if day.is_occupied %}occupied{% endif %} {% if day.is_blocked %}blocked{% endif %} {% if day.is_weekend %}weekend{% endif %}">
+                <div class="day-number">{{ day.day }}</div>
+                
+                {% if day.is_blocked %}
+                    <div class="day-blocked">
+                        <i class="fas fa-ban" style="color: #dc2626;"></i> 
+                        <strong>Bloqué</strong>
+                        <div style="font-size: 0.7rem; margin-top: 0.25rem;">{{ day.blocked_reason }}</div>
+                    </div>
+                {% elif day.events %}
+                    <div class="day-events">
+                        {% for event in day.events %}
+                            <div class="event-badge" title="{{ event.title }}">
+                                <i class="fas fa-circle"></i> {{ event.title|truncatechars:20 }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="day-free">
+                        <i class="fas fa-check" style="color: #10b981;"></i> Libre
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: #e5e7eb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.calendar-header {
+    background: #fb923c;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.calendar-day {
+    background: white;
+    min-height: 120px;
+    padding: 0.5rem;
+    position: relative;
+}
+
+.calendar-day.empty {
+    background: #f9fafb;
+}
+
+.calendar-day.today {
+    background: #fef3c7;
+    border: 2px solid #fb923c;
+}
+
+.calendar-day.occupied {
+    background: #fecaca;
+}
+
+.calendar-day.blocked {
+    background: #ffedd5;
+    border: 2px solid #ea580c;
+}
+
+.calendar-day.weekend {
+    background: #f3f4f6;
+}
+
+.day-number {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.day-blocked {
+    font-size: 0.8rem;
+    color: #dc2626;
+    text-align: center;
+    padding: 0.5rem;
+    font-weight: 600;
+}
+
+.day-events {
+    font-size: 0.75rem;
+}
+
+.event-badge {
+    background: #fb923c;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.day-free {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.header-with-back {
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}

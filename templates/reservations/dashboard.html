@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de Bord - Festy Event{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1> Tableau de Bord</h1>
+        <p style="color: var(--text-gray); margin-bottom: 0;">Vos statistiques personnelles</p>
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{% url 'event_list' %}" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-calendar"></i> Découvrir les événements
+        </a>
+        <a href="{% url 'reservation_list' %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-list"></i> Mes réservations
+        </a>
+    </div>
+</div>
+
+<!-- Cartes de statistiques principales -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+    <!-- Total Réservations -->
+    <div class="stat-card" style="background: linear-gradient(135deg, var(--primary-orange) 0%, #ff8555 100%);">
+        <div class="stat-icon"></div>
+        <div class="stat-value">{{ total_reservations }}</div>
+        <div class="stat-label">Réservations Totales</div>
+        <div class="stat-detail">{{ total_active }} actives · {{ total_cancelled }} annulées</div>
+    </div>
+    
+    <!-- Montant Total Dépensé -->
+    <div class="stat-card" style="background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);">
+        <div class="stat-icon"></div>
+        <div class="stat-value">{{ total_spent|floatformat:2 }} TND</div>
+        <div class="stat-label">Montant Total Dépensé</div>
+        <div class="stat-detail">Réservations actives uniquement</div>
+    </div>
+    
+    <!-- Places Réservées -->
+    <div class="stat-card" style="background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);">
+        <div class="stat-icon"></div>
+        <div class="stat-value">{{ total_seats }}</div>
+        <div class="stat-label">Places Réservées</div>
+        <div class="stat-detail">Total de places actives</div>
+    </div>
+    
+    <!-- Catégorie Préférée -->
+    <div class="stat-card" style="background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%);">
+        <div class="stat-icon"></div>
+        <div class="stat-value">{{ favorite_category|default:"Aucune" }}</div>
+        <div class="stat-label">Catégorie Préférée</div>
+        <div class="stat-detail">{{ favorite_category_count }} événement(s)</div>
+    </div>
+</div>
+
+<!-- Graphiques -->
+<div style="display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 3rem;">
+    
+    <!-- Graphique: Réservations par mois -->
+    <div class="card">
+        <h2 style="color: var(--primary-orange); margin-bottom: 1.5rem;">
+             Évolution de vos réservations (12 derniers mois)
+        </h2>
+        <div style="position: relative; height: 400px;">
+            <canvas id="reservationsChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Graphique: Dépenses par mois -->
+    <div class="card">
+        <h2 style="color: var(--primary-orange); margin-bottom: 1.5rem;">
+             Évolution de vos dépenses (12 derniers mois)
+        </h2>
+        <div style="position: relative; height: 400px;">
+            <canvas id="spendingChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Événements à venir et passés -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+    
+    {% if upcoming_event %}
+    <div class="card" style="border-left: 4px solid var(--primary-orange);">
+        <h3 style="color: var(--primary-orange); margin-bottom: 1rem;">
+             Prochain Événement
+        </h3>
+        <h4>{{ upcoming_event.event.title }}</h4>
+        <p><strong> Date:</strong> {{ upcoming_event.event.date|date:"d/m/Y à H:i" }}</p>
+        <p><strong> Lieu:</strong> {{ upcoming_event.event.location }}</p>
+        <p><strong> Places:</strong> {{ upcoming_event.number_of_seats }}</p>
+        <a href="{% url 'reservation_detail' upcoming_event.id %}" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">
+            Voir les détails
+        </a>
+    </div>
+    {% endif %}
+    
+    {% if last_attended_event %}
+    <div class="card" style="border-left: 4px solid #4caf50;">
+        <h3 style="color: #4caf50; margin-bottom: 1rem;">
+             Dernier Événement Assisté
+        </h3>
+        <h4>{{ last_attended_event.event.title }}</h4>
+        <p><strong> Date:</strong> {{ last_attended_event.event.date|date:"d/m/Y à H:i" }}</p>
+        <p><strong> Lieu:</strong> {{ last_attended_event.event.location }}</p>
+        <p><strong> Places:</strong> {{ last_attended_event.number_of_seats }}</p>
+        <a href="{% url 'reservation_detail' last_attended_event.id %}" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">
+            Voir les détails
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Boutons d'action -->
+<div style="display: flex; gap: 1rem; justify-content: center; margin-top: 3rem;">
+    <a href="{% url 'reservation_list' %}" class="btn btn-secondary">
+         Voir toutes mes réservations
+    </a>
+    <a href="{% url 'event_list' %}" class="btn btn-primary">
+         Découvrir de nouveaux événements
+    </a>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+// Configuration des couleurs selon le thème
+const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark' || 
+                   !document.documentElement.getAttribute('data-theme');
+
+const textColor = isDarkMode ? '#b0b0b0' : '#666666';
+const gridColor = isDarkMode ? '#333' : '#e0e0e0';
+
+// Données depuis Django
+const monthsLabels = {{ months_labels|safe }};
+const reservationsCount = {{ reservations_count|safe }};
+const spendingData = {{ spending_data|safe }};
+
+// Graphique 1: Réservations par mois
+const ctx1 = document.getElementById('reservationsChart').getContext('2d');
+const reservationsChart = new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: monthsLabels,
+        datasets: [{
+            label: 'Nombre de réservations',
+            data: reservationsCount,
+            borderColor: '#ff6b35',
+            backgroundColor: 'rgba(255, 107, 53, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#ff6b35',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                labels: {
+                    color: textColor,
+                    font: {
+                        size: 14,
+                        weight: 'bold'
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#ff6b35',
+                borderWidth: 1,
+                padding: 12,
+                displayColors: false,
+                callbacks: {
+                    label: function(context) {
+                        return 'Réservations: ' + context.parsed.y;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: textColor,
+                    stepSize: 1
+                },
+                grid: {
+                    color: gridColor
+                }
+            },
+            x: {
+                ticks: {
+                    color: textColor,
+                    maxRotation: 45,
+                    minRotation: 45
+                },
+                grid: {
+                    color: gridColor
+                }
+            }
+        }
+    }
+});
+
+// Graphique 2: Dépenses par mois
+const ctx2 = document.getElementById('spendingChart').getContext('2d');
+const spendingChart = new Chart(ctx2, {
+    type: 'line',
+    data: {
+        labels: monthsLabels,
+        datasets: [{
+            label: 'Montant dépensé (TND)',
+            data: spendingData,
+            borderColor: '#4caf50',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#4caf50',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                labels: {
+                    color: textColor,
+                    font: {
+                        size: 14,
+                        weight: 'bold'
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#4caf50',
+                borderWidth: 1,
+                padding: 12,
+                displayColors: false,
+                callbacks: {
+                    label: function(context) {
+                        return 'Montant: ' + context.parsed.y.toFixed(2) + ' TND';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: textColor,
+                    callback: function(value) {
+                        return value + ' TND';
+                    }
+                },
+                grid: {
+                    color: gridColor
+                }
+            },
+            x: {
+                ticks: {
+                    color: textColor,
+                    maxRotation: 45,
+                    minRotation: 45
+                },
+                grid: {
+                    color: gridColor
+                }
+            }
+        }
+    }
+});
+
+// Mettre à jour les couleurs des graphiques quand le thème change
+function updateChartColors() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || 
+                   !document.documentElement.getAttribute('data-theme');
+    
+    const textColor = isDark ? '#b0b0b0' : '#666666';
+    const gridColor = isDark ? '#333' : '#e0e0e0';
+    
+    // Mettre à jour le graphique des réservations
+    reservationsChart.options.plugins.legend.labels.color = textColor;
+    reservationsChart.options.scales.y.ticks.color = textColor;
+    reservationsChart.options.scales.y.grid.color = gridColor;
+    reservationsChart.options.scales.x.ticks.color = textColor;
+    reservationsChart.options.scales.x.grid.color = gridColor;
+    reservationsChart.update();
+    
+    // Mettre à jour le graphique des dépenses
+    spendingChart.options.plugins.legend.labels.color = textColor;
+    spendingChart.options.scales.y.ticks.color = textColor;
+    spendingChart.options.scales.y.grid.color = gridColor;
+    spendingChart.options.scales.x.ticks.color = textColor;
+    spendingChart.options.scales.x.grid.color = gridColor;
+    spendingChart.update();
+}
+</script>
+
+{% endblock %}

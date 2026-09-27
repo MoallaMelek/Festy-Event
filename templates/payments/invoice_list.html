@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Factures - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1><i class="fas fa-file-invoice"></i> Supervision des Factures</h1>
+        <p style="color: var(--text-gray); margin-bottom: 0;">Monitoring des factures générées automatiquement</p>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <h3 style="color: #10b981; margin-bottom: 0.5rem;">{{ total_amount|floatformat:3 }} TND</h3>
+        <p style="color: var(--text-gray);">Total facturé payé</p>
+    </div>
+    <div class="card">
+        <h3 style="color: var(--text-gray); margin-bottom: 0.5rem;">{{ draft_count }}</h3>
+        <p style="color: var(--text-gray);">Brouillons</p>
+    </div>
+    <div class="card">
+        <h3 style="color: #3b82f6; margin-bottom: 0.5rem;">{{ issued_count }}</h3>
+        <p style="color: var(--text-gray);">Émises</p>
+    </div>
+    <div class="card">
+        <h3 style="color: #10b981; margin-bottom: 0.5rem;">{{ paid_count }}</h3>
+        <p style="color: var(--text-gray);">Payées</p>
+    </div>
+</div>
+
+<!-- Liste des factures -->
+{% if invoices %}
+    <div style="display: grid; gap: 1rem;">
+        {% for invoice in invoices %}
+            <div class="card" style="border-left: 4px solid {% if invoice.status == 'PAID' %}#10b981{% elif invoice.status == 'ISSUED' %}#3b82f6{% elif invoice.status == 'CANCELLED' %}#e74c3c{% else %}#6b7280{% endif %};">
+                <div style="display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3 style="margin: 0 0 0.5rem 0;">
+                            <i class="fas fa-file-invoice"></i> {{ invoice.invoice_number }}
+                        </h3>
+                        <p style="color: var(--text-gray); margin-bottom: 1rem;">
+                            <strong>Client:</strong> {{ invoice.reservation.user.username }} | 
+                            <strong>Événement:</strong> {{ invoice.reservation.event.title }}
+                        </p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; font-size: 0.9rem;">
+                            <div>
+                                <i class="fas fa-coins" style="color: var(--primary-orange);"></i>
+                                <strong>Total:</strong> {{ invoice.total_amount|floatformat:3 }} TND
+                            </div>
+                            <div>
+                                <i class="fas fa-percent" style="color: var(--primary-orange);"></i>
+                                <strong>TVA:</strong> {{ invoice.tax_amount|floatformat:3 }} TND
+                            </div>
+                            <div>
+                                <i class="fas fa-calendar" style="color: var(--primary-orange);"></i>
+                                <strong>Émise:</strong> {{ invoice.issued_date|date:"d/m/Y" }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; min-width: 180px;">
+                        <span class="badge" style="background: {% if invoice.status == 'PAID' %}#10b981{% elif invoice.status == 'ISSUED' %}#3b82f6{% elif invoice.status == 'CANCELLED' %}#e74c3c{% else %}#6b7280{% endif %}; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; width: 100%; text-align: center;">
+                            {{ invoice.get_status_display }}
+                        </span>
+                        
+                        <a href="{% url 'invoice_detail' invoice.id %}" 
+                           class="btn btn-primary" 
+                           style="text-decoration: none; padding: 0.75rem 1rem; width: 100%; text-align: center;">
+                            <i class="fas fa-eye"></i> Voir détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox" style="font-size: 4rem; color: var(--text-gray); margin-bottom: 1rem;"></i>
+        <h3>Aucune facture trouvée</h3>
+        <p>Les factures sont générées automatiquement lors des réservations confirmées.</p>
+    </div>
+{% endif %}
+{% endblock %}

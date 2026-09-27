@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Répondre à une recommandation - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <a href="{% url 'admin_recommendation_detail' recommendation.id %}" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Retour aux détails
+            </a>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-reply"></i> Répondre à la Recommandation</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Résumé de la recommandation -->
+                    <div class="alert alert-light">
+                        <h5>{{ recommendation.title }}</h5>
+                        <p class="mb-2"><strong>Par:</strong> {{ recommendation.user.get_full_name|default:recommendation.user.username }}</p>
+                        <p class="mb-2"><strong>Note:</strong> {{ recommendation.rating }}★</p>
+                        <p class="mb-0"><strong>Commentaire:</strong> {{ recommendation.comment|truncatewords:50 }}</p>
+                    </div>
+
+                    <!-- Formulaire de réponse -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="admin_response" class="form-label">
+                                Votre réponse <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="admin_response" id="admin_response" 
+                                      class="form-control" rows="6" required 
+                                      placeholder="Rédigez votre réponse à cet avis...">{{ recommendation.admin_response }}</textarea>
+                            <small class="form-text text-muted">
+                                Cette réponse sera visible publiquement sous la recommandation.
+                            </small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'admin_recommendation_detail' recommendation.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Envoyer la réponse
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

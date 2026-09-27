@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ location.name }} - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <a href="{% url 'location_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour aux lieux
+    </a>
+    <a href="{% url 'location_calendar' location.id %}" class="btn" style="background: #3b82f6; color: white; text-decoration: none;">
+        <i class="fas fa-calendar-alt"></i> Voir calendrier
+    </a>
+</div>
+
+<div class="detail-container">
+    <div class="detail-header">
+        <h1>
+            <i class="fas fa-map-marker-alt"></i> {{ location.name }}
+        </h1>
+        <span class="badge" style="background: {% if location.status == 'AVAILABLE' %}#10b981{% elif location.status == 'OCCUPIED' %}#f59e0b{% elif location.status == 'MAINTENANCE' %}#3b82f6{% else %}#6b7280{% endif %}; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600;">
+            {{ location.get_status_display }}
+        </span>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-info-circle"></i> Informations générales
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-building" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Type</strong>
+                    <p>{{ location.get_location_type_display }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-map-pin" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Ville</strong>
+                    <p>{{ location.city }}</p>
+                </div>
+            </div>
+
+            <div class="info-item" style="grid-column: 1 / -1;">
+                <i class="fas fa-location-arrow" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Adresse</strong>
+                    <p>{{ location.address }}{% if location.postal_code %}, {{ location.postal_code }}{% endif %}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-users" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Capacité</strong>
+                    <p>{{ location.capacity }} personnes</p>
+                </div>
+            </div>
+
+            {% if location.area %}
+            <div class="info-item">
+                <i class="fas fa-ruler-combined" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Surface</strong>
+                    <p>{{ location.area|floatformat:2 }} m²</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if location.hourly_rate or location.daily_rate %}
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-coins"></i> Tarification
+        </h2>
+        
+        <div class="info-grid">
+            {% if location.hourly_rate %}
+            <div class="info-item">
+                <i class="fas fa-clock" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Tarif horaire</strong>
+                    <p style="font-size: 1.2rem; color: #10b981;">{{ location.hourly_rate|floatformat:3 }} TND</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if location.daily_rate %}
+            <div class="info-item">
+                <i class="fas fa-calendar-day" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Tarif journalier</strong>
+                    <p style="font-size: 1.2rem; color: #10b981;">{{ location.daily_rate|floatformat:3 }} TND</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if location.amenities %}
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-list"></i> Équipements disponibles
+        </h2>
+        <ul style="line-height: 1.8; padding-left: 1.5rem;">
+            {% for amenity in location.amenities.splitlines %}
+                {% if amenity %}
+                    <li>{{ amenity }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if location.contact_person or location.contact_phone or location.contact_email %}
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-address-book"></i> Contact
+        </h2>
+        
+        <div class="info-grid">
+            {% if location.contact_person %}
+            <div class="info-item">
+                <i class="fas fa-user" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Personne de contact</strong>
+                    <p>{{ location.contact_person }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if location.contact_phone %}
+            <div class="info-item">
+                <i class="fas fa-phone" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Téléphone</strong>
+                    <p>{{ location.contact_phone }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if location.contact_email %}
+            <div class="info-item">
+                <i class="fas fa-envelope" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Email</strong>
+                    <p>{{ location.contact_email }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if location.description %}
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-align-left"></i> Description
+        </h2>
+        <p style="line-height: 1.6; white-space: pre-wrap;">{{ location.description }}</p>
+    </div>
+    {% endif %}
+
+    <div class="card" style="background: #f8fafc;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-tools"></i> Actions
+        </h2>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="{% url 'location_update' location.id %}" 
+               class="btn btn-primary" 
+               style="text-decoration: none;">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{% url 'location_delete' location.id %}" 
+               class="btn" 
+               style="text-decoration: none; background: #e74c3c; color: white;"
+               onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce lieu?');">
+                <i class="fas fa-trash"></i> Supprimer
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.detail-header h1 {
+    margin: 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.info-item i {
+    font-size: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.info-item strong {
+    display: block;
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.header-with-back {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

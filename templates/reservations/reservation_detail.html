@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails Réservation - Festy Event{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
+    <a href="{% url 'reservation_list' %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-arrow-left"></i> Retour à mes réservations
+    </a>
+    <a href="{% url 'event_detail' reservation.event.id %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-info-circle"></i> Détails de l'événement
+    </a>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-chart-bar"></i> Mon Dashboard
+    </a>
+</div>
+
+<div class="card">
+    <h1> Détails de la réservation</h1>
+    
+    <div class="reservation-code">
+        {{ reservation.reservation_code }}
+    </div>
+
+    <!-- QR Code Section -->
+    <div style="text-align: center; margin: 2rem 0; padding: 2rem; background-color: #2d2d2d; border-radius: 10px; border: 2px dashed #ff6b35;">
+        <h3 style="color: #ff6b35; margin-bottom: 1rem;"> Votre billet d'entrée</h3>
+        <p style="color: #b0b0b0; margin-bottom: 1.5rem;">Présentez ce QR code à l'entrée de l'événement</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 10px; display: inline-block; border: 3px solid #1a1a1a;">
+            <img src="{{ qr_code_url }}" alt="QR Code" style="width: 250px; height: 250px; display: block;">
+        </div>
+        
+        <p style="color: #b0b0b0; margin-top: 1rem; font-size: 0.9rem;">
+            Code de scan : FESTY-{{ reservation.reservation_code }}-{{ reservation.id }}
+        </p>
+        
+        <div style="background-color: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 5px; padding: 1rem; margin-top: 1rem;">
+            <p style="color: #ff6b35; font-size: 0.9rem;">
+                 <strong>Important :</strong> Ce QR code est unique. Une fois scanné, il ne pourra plus être utilisé.
+            </p>
+        </div>
+    </div>
+
+    <div class="alert alert-{% if reservation.status == 'CONFIRMEE' %}success{% elif reservation.status == 'ANNULEE' %}danger{% else %}warning{% endif %}" style="margin-top: 1rem;">
+        <strong>Statut:</strong> {{ reservation.get_status_display }}
+    </div>
+
+    <h2 style="margin-top: 2rem; margin-bottom: 1rem;"> Informations de l'événement</h2>
+    <div class="event-detail">
+        <div class="info-item">
+            <div class="info-label"> Événement</div>
+            <div class="info-value">{{ reservation.event.title }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Date et heure</div>
+            <div class="info-value">{{ reservation.event.date|date:"d/m/Y à H:i" }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Lieu</div>
+            <div class="info-value">{{ reservation.event.location }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Catégorie</div>
+            <div class="info-value">{{ reservation.event.get_category_display }}</div>
+        </div>
+    </div>
+
+    <h2 style="margin-top: 2rem; margin-bottom: 1rem;"> Détails de la réservation</h2>
+    <div class="event-detail">
+        <div class="info-item">
+            <div class="info-label"> Participant</div>
+            <div class="info-value">{{ reservation.user.get_full_name|default:reservation.user.username }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Email</div>
+            <div class="info-value">{{ reservation.user.email }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Nombre de places</div>
+            <div class="info-value">{{ reservation.number_of_seats }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Prix par place</div>
+            <div class="info-value">{{ reservation.event.price_per_person }} TND</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Prix total</div>
+            <div class="info-value" style="color: #ff6b35;">{{ reservation.total_price }} TND</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Paiement</div>
+            <div class="info-value">
+                {% if reservation.is_paid %}
+                    <span class="badge badge-success">✅ Payé</span>
+                {% else %}
+                    <span class="badge badge-warning">⏳ En attente</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Réservée le</div>
+            <div class="info-value">{{ reservation.created_at|date:"d/m/Y à H:i" }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Dernière modification</div>
+            <div class="info-value">{{ reservation.updated_at|date:"d/m/Y à H:i" }}</div>
+        </div>
+    </div>
+
+    {% if reservation.notes %}
+        <div style="margin-top: 2rem; background-color: #1a1a1a; padding: 1rem; border-radius: 5px; border-left: 3px solid #ff6b35;">
+            <strong> Notes:</strong>
+            <p style="margin-top: 0.5rem; color: #b0b0b0;">{{ reservation.notes }}</p>
+        </div>
+    {% endif %}
+
+    <!-- US 4.1 & 4.2 : Afficher la facture et permettre le paiement -->
+    {% if invoice %}
+    <div class="card" style="margin-top: 2rem; border: 2px solid var(--primary-orange);">
+        <h2 style="color: var(--primary-orange);"> Ma Facture</h2>
+        
+        <div class="info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">
+            <div class="info-item">
+                <div class="info-label">Numéro de facture</div>
+                <div class="info-value">{{ invoice.invoice_number }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Montant Total TTC</div>
+                <div class="info-value" style="font-size: 1.5rem; color: var(--primary-orange); font-weight: bold;">
+                    {{ invoice.total_amount|floatformat:3 }} TND
+                </div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">TVA (19%)</div>
+                <div class="info-value">{{ invoice.tax_amount|floatformat:3 }} TND</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Statut</div>
+                <div class="info-value">
+                    <span class="badge" style="background: {% if invoice.status == 'PAID' %}#10b981{% elif invoice.status == 'ISSUED' %}#3b82f6{% else %}#6b7280{% endif %}; color: white; padding: 0.5rem 1rem; border-radius: 6px;">
+                        {{ invoice.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        {% if payments %}
+        <div style="margin: 1.5rem 0;">
+            <h3 style="margin-bottom: 1rem;">📝 Historique des paiements</h3>
+            {% for payment in payments %}
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-weight: bold;">{{ payment.transaction_id }}</span> - 
+                    {{ payment.get_payment_method_display }}
+                    <small style="color: #6b7280;">{{ payment.created_at|date:"d/m/Y H:i" }}</small>
+                </div>
+                <div>
+                    <span style="font-weight: bold; color: {% if payment.status == 'COMPLETED' %}#10b981{% elif payment.status == 'FAILED' %}#e74c3c{% else %}#f59e0b{% endif %};">
+                        {{ payment.amount|floatformat:3 }} TND
+                    </span>
+                    <span class="badge" style="background: {% if payment.status == 'COMPLETED' %}#10b981{% elif payment.status == 'FAILED' %}#e74c3c{% else %}#f59e0b{% endif %}; color: white; margin-left: 0.5rem;">
+                        {{ payment.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+            <a href="{% url 'client_invoice_detail' invoice.id %}" class="btn btn-secondary" style="flex: 1; min-width: 200px; text-decoration: none;">
+                <i class="fas fa-file-invoice"></i> Voir ma facture
+            </a>
+            
+            <a href="{% url 'download_invoice_pdf' invoice.id %}" class="btn" style="flex: 1; min-width: 200px; background: #ef4444; color: white; text-decoration: none;">
+                <i class="fas fa-file-pdf"></i> Télécharger PDF
+            </a>
+            
+            {% if invoice.status != 'PAID' %}
+            <a href="{% url 'client_pay_invoice' invoice.id %}" class="btn btn-primary" style="flex: 1; min-width: 200px; text-decoration: none;">
+                <i class="fas fa-credit-card"></i> Payer maintenant
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if reservation.cancelled_at %}
+        <div class="alert alert-danger" style="margin-top: 2rem;">
+             Cette réservation a été annulée le {{ reservation.cancelled_at|date:"d/m/Y à H:i" }}
+        </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'reservation_list' %}" class="btn btn-secondary" style="flex: 1;">
+            Retour à la liste
+        </a>
+        
+        {% if reservation.status == 'CONFIRMEE' %}
+            <a href="{% url 'resend_confirmation_email' reservation.id %}" class="btn btn-primary" style="flex: 1;">
+                 Renvoyer l'email
+            </a>
+            
+            <a href="{% url 'reservation_update' reservation.id %}" class="btn btn-primary" style="flex: 1;">
+                ✏️ Modifier
+            </a>
+            
+            {% if reservation.can_be_cancelled %}
+                <a href="{% url 'reservation_cancel' reservation.id %}" class="btn btn-danger" style="flex: 1;">
+                     Annuler
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

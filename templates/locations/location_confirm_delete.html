@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer {{ location.name }} - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'location_detail' location.id %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour
+    </a>
+</div>
+
+<div class="form-container">
+    <div class="card" style="border-left: 4px solid #e74c3c;">
+        <h1 style="color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i> Confirmer la suppression</h1>
+        
+        <p style="font-size: 1.1rem; margin: 1.5rem 0;">
+            Êtes-vous sûr de vouloir supprimer le lieu <strong>"{{ location.name }}"</strong>?
+        </p>
+        
+        <p style="color: var(--text-gray); margin-bottom: 2rem;">
+            Cette action est irréversible. Toutes les informations relatives à ce lieu seront définitivement supprimées.
+        </p>
+
+        <form method="post" style="display: flex; gap: 1rem;">
+            {% csrf_token %}
+            <button type="submit" class="btn" style="background: #e74c3c; color: white;">
+                <i class="fas fa-trash"></i> Oui, supprimer
+            </button>
+            <a href="{% url 'location_detail' location.id %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

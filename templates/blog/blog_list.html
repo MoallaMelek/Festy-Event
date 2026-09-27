@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}Blog - Festy Event{% endblock %}
+
+{% block content %}
+<style>
+.blog-header {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    padding: 3rem 0;
+    color: white;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.featured-section {
+    margin-bottom: 3rem;
+}
+
+.featured-card {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    color: white;
+    transition: transform 0.3s;
+}
+
+.featured-card:hover {
+    transform: translateY(-5px);
+}
+
+.featured-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.featured-content {
+    padding: 1.5rem;
+}
+
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.blog-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+}
+
+.blog-card:hover {
+    box-shadow: 0 8px 16px rgba(251, 146, 60, 0.2);
+    transform: translateY(-5px);
+}
+
+.blog-card-img {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+
+.blog-card-content {
+    padding: 1.5rem;
+}
+
+.blog-category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.blog-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 1rem;
+}
+
+.sidebar {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.category-list {
+    list-style: none;
+    padding: 0;
+}
+
+.category-list li {
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.category-list li:hover {
+    background: #fff7ed;
+}
+
+.category-list li.active {
+    background: #fb923c;
+    color: white;
+}
+</style>
+
+<div class="blog-header">
+    <h1><i class="fas fa-blog"></i> Blog Festy Event</h1>
+    <p>Actualités, conseils et témoignages sur l'événementiel en Tunisie</p>
+</div>
+
+<div style="max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
+    <!-- Articles à la une -->
+    {% if featured_posts and not search_query %}
+    <div class="featured-section">
+        <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-star" style="color: #fb923c;"></i> Articles à la une</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            {% for post in featured_posts %}
+            <a href="{% url 'blog_detail' post.slug %}" style="text-decoration: none;">
+                <div class="featured-card">
+                    <div class="featured-card-img" style="height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                        {{ post.category.icon|default:'📰' }}
+                    </div>
+                    <div class="featured-content">
+                        <h3 style="margin: 0 0 0.5rem 0; color: white;">{{ post.title }}</h3>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">{{ post.excerpt|truncatewords:20 }}</p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
+        <!-- Articles principaux -->
+        <div>
+            <h2 style="margin-bottom: 1.5rem;">
+                {% if current_category %}Articles - {{ current_category }}{% elif search_query %}Résultats de recherche{% else %}Tous les articles{% endif %}
+                <span style="color: #6b7280; font-weight: normal; font-size: 1rem;">({{ posts.paginator.count }} article{{ posts.paginator.count|pluralize }})</span>
+            </h2>
+
+            {% if posts %}
+            <div class="blog-grid">
+                {% for post in posts %}
+                <article class="blog-card">
+                    <div class="blog-card-img">
+                        <i class="{{ post.category.icon }}" style="font-size: 3rem;"></i>
+                    </div>
+                    <div class="blog-card-content">
+                        <span class="blog-category-badge" style="background: {{ post.category.color }}20; color: {{ post.category.color }};">
+                            {{ post.category.name }}
+                        </span>
+                        <h3 style="margin: 0 0 0.75rem 0;">
+                            <a href="{% url 'blog_detail' post.slug %}" style="color: #111827; text-decoration: none;">
+                                {{ post.title }}
+                            </a>
+                        </h3>
+                        <p style="color: #6b7280; font-size: 0.95rem; margin-bottom: 1rem;">
+                            {{ post.excerpt|truncatewords:25 }}
+                        </p>
+                        <div class="blog-meta">
+                            <span><i class="fas fa-user"></i> {{ post.author.username }}</span>
+                            <span><i class="fas fa-calendar"></i> {{ post.published_at|date:"d M Y" }}</span>
+                            <span><i class="fas fa-eye"></i> {{ post.views_count }} vues</span>
+                        </div>
+                        <a href="{% url 'blog_detail' post.slug %}" class="btn btn-primary" style="margin-top: 1rem; width: 100%; text-align: center;">
+                            Lire la suite <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if posts.has_other_pages %}
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
+                {% if posts.has_previous %}
+                <a href="?page={{ posts.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-secondary">
+                    <i class="fas fa-chevron-left"></i> Précédent
+                </a>
+                {% endif %}
+                
+                <span class="btn" style="background: #fb923c; color: white;">
+                    Page {{ posts.number }} sur {{ posts.paginator.num_pages }}
+                </span>
+                
+                {% if posts.has_next %}
+                <a href="?page={{ posts.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-secondary">
+                    Suivant <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% else %}
+            <div style="text-align: center; padding: 3rem; color: #6b7280;">
+                <i class="fas fa-inbox" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                <p>Aucun article trouvé.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <aside>
+            <!-- Recherche -->
+            <div class="sidebar" style="margin-bottom: 1.5rem;">
+                <h3 style="margin-top: 0;"><i class="fas fa-search"></i> Recherche</h3>
+                <form method="get">
+                    <input type="text" name="search" placeholder="Rechercher..." value="{{ search_query }}" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                        Rechercher
+                    </button>
+                </form>
+            </div>
+
+            <!-- Catégories -->
+            <div class="sidebar" style="margin-bottom: 1.5rem;">
+                <h3 style="margin-top: 0;"><i class="fas fa-folder"></i> Catégories</h3>
+                <ul class="category-list">
+                    <li class="{% if not current_category %}active{% endif %}">
+                        <a href="{% url 'blog_list' %}" style="text-decoration: none; color: inherit; display: block;">
+                            <i class="fas fa-th"></i> Toutes les catégories
+                        </a>
+                    </li>
+                    {% for category in categories %}
+                    <li class="{% if current_category == category.slug %}active{% endif %}">
+                        <a href="?category={{ category.slug }}" style="text-decoration: none; color: inherit; display: block;">
+                            <i class="{{ category.icon }}"></i> {{ category.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Newsletter -->
+            <div class="sidebar" style="background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: white;">
+                <h3 style="margin-top: 0; color: white;"><i class="fas fa-envelope"></i> Newsletter</h3>
+                <p style="font-size: 0.9rem; margin-bottom: 1rem;">Recevez nos dernières actualités directement dans votre boîte mail !</p>
+                <form method="post" action="{% url 'newsletter_subscribe' %}">
+                    {% csrf_token %}
+                    <input type="email" name="email" placeholder="Votre email" required style="width: 100%; padding: 0.75rem; border: none; border-radius: 8px; margin-bottom: 0.5rem;">
+                    <input type="text" name="name" placeholder="Votre nom (optionnel)" style="width: 100%; padding: 0.75rem; border: none; border-radius: 8px; margin-bottom: 0.5rem;">
+                    <button type="submit" class="btn" style="width: 100%; background: white; color: #fb923c; font-weight: 600;">
+                        S'abonner <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}

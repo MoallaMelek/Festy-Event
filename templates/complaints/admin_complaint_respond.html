@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Répondre à la Réclamation #{{ complaint.id }} - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'admin_complaint_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour à la liste
+    </a>
+</div>
+
+<div class="respond-container">
+    <h1 style="text-align: center; margin-bottom: 2rem;">
+        <i class="fas fa-reply"></i> Répondre à la Réclamation #{{ complaint.id }}
+    </h1>
+
+    <!-- Informations de la réclamation -->
+    <div class="card" style="background: #f8fafc; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-info-circle"></i> Détails de la réclamation
+        </h2>
+        
+        <div style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; gap: 1rem; align-items: start;">
+                <i class="fas fa-user" style="color: var(--primary-orange); margin-top: 0.25rem;"></i>
+                <div>
+                    <strong style="color: var(--text-gray); display: block; font-size: 0.9rem;">Utilisateur</strong>
+                    <span style="font-weight: 600;">{{ complaint.user.username }} ({{ complaint.user.email }})</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; align-items: start;">
+                <i class="fas fa-tag" style="color: var(--primary-orange); margin-top: 0.25rem;"></i>
+                <div>
+                    <strong style="color: var(--text-gray); display: block; font-size: 0.9rem;">Catégorie</strong>
+                    <span style="font-weight: 600;">{{ complaint.get_category_display }}</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; align-items: start;">
+                <i class="fas fa-clock" style="color: var(--primary-orange); margin-top: 0.25rem;"></i>
+                <div>
+                    <strong style="color: var(--text-gray); display: block; font-size: 0.9rem;">Date de création</strong>
+                    <span style="font-weight: 600;">{{ complaint.created_at|date:"d/m/Y à H:i" }}</span>
+                </div>
+            </div>
+
+            {% if complaint.reservation %}
+            <div style="display: flex; gap: 1rem; align-items: start;">
+                <i class="fas fa-ticket-alt" style="color: var(--primary-orange); margin-top: 0.25rem;"></i>
+                <div>
+                    <strong style="color: var(--text-gray); display: block; font-size: 0.9rem;">Réservation liée</strong>
+                    <span style="font-weight: 600;">
+                        <a href="{% url 'reservation_detail' complaint.reservation.id %}" style="color: var(--primary-orange); text-decoration: none;">
+                            Réservation #{{ complaint.reservation.id }}
+                        </a>
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if complaint.event %}
+            <div style="display: flex; gap: 1rem; align-items: start;">
+                <i class="fas fa-calendar-alt" style="color: var(--primary-orange); margin-top: 0.25rem;"></i>
+                <div>
+                    <strong style="color: var(--text-gray); display: block; font-size: 0.9rem;">Événement lié</strong>
+                    <span style="font-weight: 600;">
+                        <a href="{% url 'event_detail' complaint.event.id %}" style="color: var(--primary-orange); text-decoration: none;">
+                            {{ complaint.event.title }}
+                        </a>
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="background: white; padding: 1rem; border-radius: 6px; border-left: 4px solid var(--primary-orange);">
+            <strong style="display: block; margin-bottom: 0.5rem; color: var(--primary-orange);">
+                <i class="fas fa-heading"></i> Sujet
+            </strong>
+            <p style="font-weight: 600; margin-bottom: 1rem;">{{ complaint.subject }}</p>
+            
+            <strong style="display: block; margin-bottom: 0.5rem; color: var(--primary-orange);">
+                <i class="fas fa-align-left"></i> Description
+            </strong>
+            <p style="line-height: 1.6; white-space: pre-wrap; margin: 0;">{{ complaint.description }}</p>
+        </div>
+
+        {% if complaint.admin_response %}
+        <div style="background: #fef3c7; padding: 1rem; border-radius: 6px; border-left: 4px solid #fbbf24; margin-top: 1rem;">
+            <strong style="display: block; margin-bottom: 0.5rem; color: #f59e0b;">
+                <i class="fas fa-history"></i> Réponse précédente
+            </strong>
+            {% if complaint.responded_by %}
+            <p style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 0.5rem;">
+                Par: <strong>{{ complaint.responded_by.username }}</strong> le {{ complaint.responded_at|date:"d/m/Y à H:i" }}
+            </p>
+            {% endif %}
+            <p style="line-height: 1.6; white-space: pre-wrap; margin: 0;">{{ complaint.admin_response }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Formulaire de réponse -->
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary-orange);">
+            <i class="fas fa-pen"></i> {% if complaint.admin_response %}Modifier la réponse{% else %}Votre réponse{% endif %}
+        </h2>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="{{ form.status.id_for_label }}">
+                    <i class="fas fa-info-circle"></i> Statut <span style="color: #e74c3c;">*</span>
+                </label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <div class="error-message">
+                        {% for error in form.status.errors %}
+                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <small style="color: var(--text-gray); margin-top: 0.25rem; display: block;">
+                    Mettez à jour le statut de la réclamation
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.priority.id_for_label }}">
+                    <i class="fas fa-exclamation-triangle"></i> Priorité <span style="color: #e74c3c;">*</span>
+                </label>
+                {{ form.priority }}
+                {% if form.priority.errors %}
+                    <div class="error-message">
+                        {% for error in form.priority.errors %}
+                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <small style="color: var(--text-gray); margin-top: 0.25rem; display: block;">
+                    Ajustez le niveau de priorité si nécessaire
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.admin_response.id_for_label }}">
+                    <i class="fas fa-comment-dots"></i> Message de réponse <span style="color: #e74c3c;">*</span>
+                </label>
+                {{ form.admin_response }}
+                {% if form.admin_response.errors %}
+                    <div class="error-message">
+                        {% for error in form.admin_response.errors %}
+                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <small style="color: var(--text-gray); margin-top: 0.25rem; display: block;">
+                    Rédigez une réponse claire et professionnelle à l'utilisateur
+                </small>
+            </div>
+
+            <div class="form-group" style="margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-paper-plane"></i> {% if complaint.admin_response %}Mettre à jour la réponse{% else %}Envoyer la réponse{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.respond-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+}
+
+.form-group textarea {
+    min-height: 200px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-danger {
+    background: #fee;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+}
+
+.header-with-back {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

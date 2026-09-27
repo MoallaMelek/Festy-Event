@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Réservations - Festy Event{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1> Mes Réservations</h1>
+        <p style="color: var(--text-gray); margin-bottom: 0;">Gérez toutes vos réservations d'événements</p>
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-chart-bar"></i> Mon Dashboard
+        </a>
+        <a href="{% url 'event_list' %}" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-plus"></i> Nouvelle réservation
+        </a>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <h3 style="color: var(--primary-orange); margin-bottom: 0.5rem;">{{ reservations.count }}</h3>
+        <p style="color: var(--text-gray);">Total réservations</p>
+    </div>
+    <div class="card">
+        <h3 style="color: #4caf50; margin-bottom: 0.5rem;">{{ active_reservations.count }}</h3>
+        <p style="color: var(--text-gray);">Actives</p>
+    </div>
+    <div class="card">
+        <h3 style="color: #f44336; margin-bottom: 0.5rem;">{{ cancelled_reservations.count }}</h3>
+        <p style="color: var(--text-gray);">Annulées</p>
+    </div>
+</div>
+
+<!-- Onglets -->
+<div class="tabs">
+    <button class="tab-button active" data-tab="active">
+         Actives ({{ active_reservations.count }})
+    </button>
+    <button class="tab-button" data-tab="cancelled">
+         Historique ({{ cancelled_reservations.count }})
+    </button>
+</div>
+
+<!-- Réservations actives -->
+<div id="active-tab" class="tab-content active">
+    {% if active_reservations %}
+        <div class="card-grid">
+            {% for reservation in active_reservations %}
+                <div class="card">
+                    <div class="card-header">{{ reservation.event.title }}</div>
+                    
+                    <div class="reservation-code">
+                        {{ reservation.reservation_code }}
+                    </div>
+                    
+                    <div class="card-body">
+                        <p><strong> Date:</strong> {{ reservation.event.date|date:"d/m/Y à H:i" }}</p>
+                        <p><strong> Lieu:</strong> {{ reservation.event.location }}</p>
+                        <p><strong> Places:</strong> {{ reservation.number_of_seats }}</p>
+                        <p><strong> Total:</strong> {{ reservation.total_price }} TND</p>
+                        <p><strong> Statut:</strong> <span class="badge badge-success">{{ reservation.get_status_display }}</span></p>
+                        <p><strong> Réservée le:</strong> {{ reservation.created_at|date:"d/m/Y à H:i" }}</p>
+                        
+                        {% if reservation.notes %}
+                            <p><strong> Notes:</strong> {{ reservation.notes }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-secondary" style="flex: 1;">
+                            Détails
+                        </a>
+                        <a href="{% url 'reservation_update' reservation.id %}" class="btn btn-primary" style="flex: 1;">
+                            Modifier
+                        </a>
+                        {% if reservation.can_be_cancelled %}
+                            <a href="{% url 'reservation_cancel' reservation.id %}" class="btn btn-danger" style="flex: 1;">
+                                Annuler
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3> Aucune réservation active</h3>
+            <p>Vous n'avez pas de réservations actives pour le moment.</p>
+            <a href="{% url 'event_list' %}" class="btn btn-primary">
+                Découvrir les événements
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Historique des réservations annulées -->
+<div id="cancelled-tab" class="tab-content">
+    {% if cancelled_reservations %}
+        <div class="card-grid">
+            {% for reservation in cancelled_reservations %}
+                <div class="card card-cancelled">
+                    <div class="card-header" style="opacity: 0.7;">
+                        {{ reservation.event.title }}
+                        <span style="float: right; font-size: 0.9rem; color: #f44336;">ANNULÉE</span>
+                    </div>
+                    
+                    <div class="card-body">
+                        <p><strong>Code:</strong> {{ reservation.reservation_code }}</p>
+                        <p><strong> Date événement:</strong> {{ reservation.event.date|date:"d/m/Y à H:i" }}</p>
+                        <p><strong> Lieu:</strong> {{ reservation.event.location }}</p>
+                        <p><strong> Places:</strong> {{ reservation.number_of_seats }}</p>
+                        <p><strong> Montant:</strong> {{ reservation.total_price }} TND</p>
+                        <p><strong> Réservée le:</strong> {{ reservation.created_at|date:"d/m/Y à H:i" }}</p>
+                        <p><strong> Annulée le:</strong> {{ reservation.cancelled_at|date:"d/m/Y à H:i" }}</p>
+                        
+                        {% if reservation.notes %}
+                            <p style="opacity: 0.7;"><strong> Notes:</strong> {{ reservation.notes }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="margin-top: 1rem;">
+                        <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-secondary" style="width: 100%;">
+                            Voir les détails
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3> Aucune réservation annulée</h3>
+            <p>Votre historique est vide.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- État vide général -->
+{% if not reservations %}
+    <div class="empty-state">
+        <h3> Aucune réservation</h3>
+        <p>Vous n'avez pas encore de réservations.</p>
+        <a href="{% url 'event_list' %}" class="btn btn-primary">
+            Découvrir les événements
+        </a>
+    </div>
+{% endif %}
+
+<script>
+// Gestion des onglets
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabName = this.dataset.tab;
+            
+            // Retirer la classe active de tous les boutons et contenus
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Ajouter la classe active au bouton cliqué et au contenu correspondant
+            this.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        });
+    });
+});
+</script>
+
+{% endblock %}

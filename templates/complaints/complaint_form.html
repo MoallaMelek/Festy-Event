@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Nouvelle Réclamation - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'complaint_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour à mes réclamations
+    </a>
+</div>
+
+<div class="form-container">
+    <h1 style="text-align: center; margin-bottom: 2rem;">
+        <i class="fas fa-comment-alt"></i> Soumettre une Réclamation
+    </h1>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="{{ form.category.id_for_label }}">
+                <i class="fas fa-tag"></i> Catégorie <span style="color: #e74c3c;">*</span>
+            </label>
+            {{ form.category }}
+            {% if form.category.errors %}
+                <div class="error-message">
+                    {% for error in form.category.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: var(--text-gray); margin-top: 0.25rem; display: block;">
+                Sélectionnez la catégorie de votre réclamation
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.reservation.id_for_label }}">
+                <i class="fas fa-ticket-alt"></i> Réservation concernée
+            </label>
+            {{ form.reservation }}
+            {% if form.reservation.errors %}
+                <div class="error-message">
+                    {% for error in form.reservation.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: var(--text-gray); margin-top: 0.25rem; display: block;">
+                Optionnel - Sélectionnez la réservation liée à cette réclamation
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.event.id_for_label }}">
+                <i class="fas fa-calendar-alt"></i> Événement concerné
+            </label>
+            {{ form.event }}
+            {% if form.event.errors %}
+                <div class="error-message">
+                    {% for error in form.event.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: var(--text-gray); margin-top: 0.25rem; display: block;">
+                Optionnel - Sélectionnez l'événement lié à cette réclamation
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.subject.id_for_label }}">
+                <i class="fas fa-heading"></i> Sujet <span style="color: #e74c3c;">*</span>
+            </label>
+            {{ form.subject }}
+            {% if form.subject.errors %}
+                <div class="error-message">
+                    {% for error in form.subject.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: var(--text-gray); margin-top: 0.25rem; display: block;">
+                Résumé court de votre réclamation
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">
+                <i class="fas fa-align-left"></i> Description détaillée <span style="color: #e74c3c;">*</span>
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+                <div class="error-message">
+                    {% for error in form.description.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: var(--text-gray); margin-top: 0.25rem; display: block;">
+                Décrivez votre problème en détail pour nous aider à mieux vous assister
+            </small>
+        </div>
+
+        <div class="form-group" style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-paper-plane"></i> Soumettre la réclamation
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+}
+
+.form-group textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-danger {
+    background: #fee;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+}
+
+.header-with-back {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscription - Festy Event{% endblock %}
+
+{% block content %}
+<style>
+    .auth-container {
+        max-width: 500px;
+        margin: 3rem auto;
+        padding: 0 1rem;
+    }
+    
+    .auth-card {
+        background: var(--secondary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 10px;
+        padding: 2.5rem;
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-header h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .auth-header p {
+        color: var(--text-gray);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-white);
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--primary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 5px;
+        color: var(--text-white);
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-orange);
+    }
+    
+    .error-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 0 0;
+    }
+    
+    .error-list li {
+        color: var(--error-red);
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+    
+    .help-text {
+        color: var(--text-gray);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-gray);
+    }
+    
+    .auth-footer a {
+        color: var(--primary-orange);
+        text-decoration: none;
+    }
+    
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>Créer un compte</h1>
+            <p>Rejoignez Festy Event pour réserver vos événements</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <ul class="error-list">
+                        {% for error in form.username.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if form.username.help_text %}
+                    <div class="help-text">{{ form.username.help_text }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">Adresse email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <ul class="error-list">
+                        {% for error in form.email.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.first_name.id_for_label }}">Prénom</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <ul class="error-list">
+                        {% for error in form.first_name.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.last_name.id_for_label }}">Nom</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <ul class="error-list">
+                        {% for error in form.last_name.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password1.id_for_label }}">Mot de passe</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                    <ul class="error-list">
+                        {% for error in form.password1.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if form.password1.help_text %}
+                    <div class="help-text">{{ form.password1.help_text }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password2.id_for_label }}">Confirmer le mot de passe</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                    <ul class="error-list">
+                        {% for error in form.password2.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                Créer mon compte
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Vous avez déjà un compte ? <a href="{% url 'users:login' %}">Se connecter</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer une recommandation{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Supprimer la recommandation</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Attention!</strong><br>
+                        Êtes-vous sûr de vouloir supprimer cette recommandation ?
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Événement:</strong> {{ recommendation.event.title }}<br>
+                        <strong>Note:</strong> {{ recommendation.rating }}★<br>
+                        <strong>Titre:</strong> {{ recommendation.title }}
+                    </div>
+
+                    <p class="text-muted">Cette action est irréversible.</p>
+
+                    <form method="post" class="d-flex justify-content-between">
+                        {% csrf_token %}
+                        <a href="{% url 'event_detail' recommendation.event.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

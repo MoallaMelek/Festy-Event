@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Facture {{ invoice.invoice_number }} - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'admin_invoice_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour aux factures
+    </a>
+</div>
+
+<div class="detail-container">
+    <div class="detail-header">
+        <h1>
+            <i class="fas fa-file-invoice"></i> {{ invoice.invoice_number }}
+        </h1>
+        <span class="badge" style="background: {% if invoice.status == 'PAID' %}#10b981{% elif invoice.status == 'ISSUED' %}#3b82f6{% elif invoice.status == 'CANCELLED' %}#e74c3c{% else %}#6b7280{% endif %}; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600;">
+            {{ invoice.get_status_display }}
+        </span>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-info-circle"></i> Détails de la facture
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-coins" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Montant total</strong>
+                    <p style="font-size: 1.5rem; color: #10b981;">{{ invoice.total_amount|floatformat:3 }} TND</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-percent" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>TVA (19%)</strong>
+                    <p>{{ invoice.tax_amount|floatformat:3 }} TND</p>
+                </div>
+            </div>
+
+            {% if invoice.discount_amount > 0 %}
+            <div class="info-item">
+                <i class="fas fa-tag" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Remise</strong>
+                    <p>{{ invoice.discount_amount|floatformat:3 }} TND</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="info-item">
+                <i class="fas fa-calendar" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Date d'émission</strong>
+                    <p>{{ invoice.issued_date|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+
+            {% if invoice.due_date %}
+            <div class="info-item">
+                <i class="fas fa-clock" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Date d'échéance</strong>
+                    <p>{{ invoice.due_date|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-user"></i> Informations client
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-user-circle" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Nom</strong>
+                    <p>{{ invoice.reservation.user.username }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-envelope" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Email</strong>
+                    <p>{{ invoice.reservation.user.email }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-ticket-alt" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Réservation</strong>
+                    <p>
+                        <a href="{% url 'reservation_detail' invoice.reservation.id %}" style="color: var(--primary-orange); text-decoration: none;">
+                            #{{ invoice.reservation.id }}
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-calendar-alt" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Événement</strong>
+                    <p>
+                        <a href="{% url 'event_detail' invoice.reservation.event.id %}" style="color: var(--primary-orange); text-decoration: none;">
+                            {{ invoice.reservation.event.title }}
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if invoice.notes %}
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-sticky-note"></i> Notes
+        </h2>
+        <p style="line-height: 1.6; white-space: pre-wrap;">{{ invoice.notes }}</p>
+    </div>
+    {% endif %}
+
+    <div class="card" style="background: #e0f2fe;">
+        <h2 style="margin-bottom: 1rem; color: #0369a1;">
+            <i class="fas fa-info-circle"></i> Information
+        </h2>
+        <p style="line-height: 1.6;">
+            {% if invoice.status == 'PAID' %}
+                ✅ Cette facture a été payée par le client.
+            {% elif invoice.status == 'ISSUED' %}
+                ⏳ En attente du paiement client. Le client peut payer via sa page de réservation.
+            {% elif invoice.status == 'DRAFT' %}
+                📝 Facture en brouillon.
+            {% else %}
+                ❌ Facture annulée.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<style>
+.detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.detail-header h1 {
+    margin: 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.info-item i {
+    font-size: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.info-item strong {
+    display: block;
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.header-with-back {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

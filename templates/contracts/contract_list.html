@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Contrats - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1><i class="fas fa-file-contract"></i> Gestion des Contrats</h1>
+    <a href="{% url 'contract_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Créer un contrat
+    </a>
+</div>
+
+<!-- Statistics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <i class="fas fa-file-contract"></i>
+        <div>
+            <h3>{{ total_contracts }}</h3>
+            <p>Total contrats</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-color: #6b7280;">
+        <i class="fas fa-file-alt" style="color: #6b7280;"></i>
+        <div>
+            <h3>{{ draft_count }}</h3>
+            <p>Brouillons</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-color: #10b981;">
+        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+        <div>
+            <h3>{{ active_count }}</h3>
+            <p>Actifs</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-color: #3b82f6;">
+        <i class="fas fa-flag-checkered" style="color: #3b82f6;"></i>
+        <div>
+            <h3>{{ completed_count }}</h3>
+            <p>Terminés</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-card">
+    <h2><i class="fas fa-filter"></i> Filtres</h2>
+    <form method="get" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+            <label for="status">Statut:</label>
+            <select name="status" id="status" onchange="this.form.submit()">
+                <option value="">Tous</option>
+                <option value="DRAFT" {% if status_filter == 'DRAFT' %}selected{% endif %}>Brouillon</option>
+                <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Actif</option>
+                <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>Terminé</option>
+                <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>Annulé</option>
+            </select>
+        </div>
+        <div>
+            <label for="type">Type:</label>
+            <select name="type" id="type" onchange="this.form.submit()">
+                <option value="">Tous</option>
+                <option value="SERVICE" {% if type_filter == 'SERVICE' %}selected{% endif %}>Service</option>
+                <option value="PARTNERSHIP" {% if type_filter == 'PARTNERSHIP' %}selected{% endif %}>Partenariat</option>
+                <option value="SPONSORSHIP" {% if type_filter == 'SPONSORSHIP' %}selected{% endif %}>Sponsoring</option>
+                <option value="VENUE" {% if type_filter == 'VENUE' %}selected{% endif %}>Lieu</option>
+                <option value="SUPPLIER" {% if type_filter == 'SUPPLIER' %}selected{% endif %}>Fournisseur</option>
+                <option value="OTHER" {% if type_filter == 'OTHER' %}selected{% endif %}>Autre</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- Contracts List -->
+<div class="contracts-grid">
+    {% for contract in contracts %}
+        <div class="card" style="border-left: 4px solid {% if contract.status == 'ACTIVE' %}#10b981{% elif contract.status == 'COMPLETED' %}#3b82f6{% elif contract.status == 'CANCELLED' %}#e74c3c{% else %}#6b7280{% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: var(--primary-orange);">
+                        <i class="fas fa-file-contract"></i> {{ contract.title }}
+                    </h3>
+                    <span class="badge" style="background: #6b7280; color: white; font-size: 0.85rem;">
+                        {{ contract.get_contract_type_display }}
+                    </span>
+                </div>
+                <span class="badge" style="background: {% if contract.status == 'ACTIVE' %}#10b981{% elif contract.status == 'COMPLETED' %}#3b82f6{% elif contract.status == 'CANCELLED' %}#e74c3c{% else %}#6b7280{% endif %}; color: white;">
+                    {{ contract.get_status_display }}
+                </span>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <p style="margin: 0.5rem 0;">
+                    <i class="fas fa-hashtag"></i> <strong>N°:</strong> {{ contract.contract_number }}
+                </p>
+                <p style="margin: 0.5rem 0;">
+                    <i class="fas fa-user"></i> <strong>Client:</strong> {{ contract.client_name }}
+                </p>
+                <p style="margin: 0.5rem 0;">
+                    <i class="fas fa-calendar"></i> <strong>Début:</strong> {{ contract.start_date|date:"d/m/Y" }}
+                </p>
+                {% if contract.amount %}
+                <p style="margin: 0.5rem 0;">
+                    <i class="fas fa-coins"></i> <strong>Montant:</strong> {{ contract.amount|floatformat:3 }} TND
+                </p>
+                {% endif %}
+                
+                <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+                    {% if contract.signed_by_client %}
+                        <span style="font-size: 0.85rem; color: #10b981;">
+                            <i class="fas fa-check-circle"></i> Signé client
+                        </span>
+                    {% else %}
+                        <span style="font-size: 0.85rem; color: #f59e0b;">
+                            <i class="fas fa-clock"></i> En attente signature client
+                        </span>
+                    {% endif %}
+                    
+                    {% if contract.signed_by_admin %}
+                        <span style="font-size: 0.85rem; color: #10b981;">
+                            <i class="fas fa-check-circle"></i> Signé admin
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="{% url 'contract_detail' contract.id %}" class="btn btn-secondary" style="flex: 1; text-align: center; text-decoration: none;">
+                    <i class="fas fa-eye"></i> Voir détails
+                </a>
+                {% if contract.status == 'DRAFT' %}
+                <a href="{% url 'contract_update' contract.id %}" class="btn" style="flex: 1; text-align: center; text-decoration: none; background: var(--primary-orange); color: white;">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="card" style="grid-column: 1 / -1; text-align: center;">
+            <i class="fas fa-file-contract" style="font-size: 3rem; color: var(--text-gray); margin-bottom: 1rem;"></i>
+            <p style="color: var(--text-gray);">Aucun contrat trouvé.</p>
+            <a href="{% url 'contract_create' %}" class="btn btn-primary" style="text-decoration: none; display: inline-block; margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Créer le premier contrat
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+.contracts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}

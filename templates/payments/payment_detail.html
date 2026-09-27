@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiement {{ payment.transaction_id }} - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'admin_payment_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour aux paiements
+    </a>
+</div>
+
+<div class="detail-container">
+    <div class="detail-header">
+        <h1>
+            <i class="fas fa-credit-card"></i> Paiement {{ payment.transaction_id }}
+        </h1>
+        <span class="badge" style="background: {% if payment.status == 'COMPLETED' %}#10b981{% elif payment.status == 'PENDING' %}#fbbf24{% elif payment.status == 'FAILED' %}#e74c3c{% else %}#f97316{% endif %}; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600;">
+            {{ payment.get_status_display }}
+        </span>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-info-circle"></i> Informations du paiement
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-coins" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Montant</strong>
+                    <p style="font-size: 1.5rem; color: #10b981;">{{ payment.amount|floatformat:3 }} TND</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-wallet" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Méthode de paiement</strong>
+                    <p>{{ payment.get_payment_method_display }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-calendar" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Date de création</strong>
+                    <p>{{ payment.created_at|date:"d/m/Y à H:i" }}</p>
+                </div>
+            </div>
+
+            {% if payment.payment_date %}
+            <div class="info-item">
+                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                <div>
+                    <strong>Date de paiement</strong>
+                    <p>{{ payment.payment_date|date:"d/m/Y à H:i" }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-ticket-alt"></i> Réservation associée
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-hashtag" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Réservation</strong>
+                    <p>
+                        <a href="{% url 'reservation_detail' payment.reservation.id %}" style="color: var(--primary-orange); text-decoration: none;">
+                            #{{ payment.reservation.id }}
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-calendar-alt" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Événement</strong>
+                    <p>
+                        <a href="{% url 'event_detail' payment.reservation.event.id %}" style="color: var(--primary-orange); text-decoration: none;">
+                            {{ payment.reservation.event.title }}
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-user" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Client</strong>
+                    <p>{{ payment.reservation.user.username }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-users" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Nombre de personnes</strong>
+                    <p>{{ payment.reservation.number_of_people }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if payment.notes %}
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-sticky-note"></i> Notes
+        </h2>
+        <p style="line-height: 1.6; white-space: pre-wrap;">{{ payment.notes }}</p>
+    </div>
+    {% endif %}
+
+    <div class="card" style="background: #f8fafc;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-tools"></i> Actions
+        </h2>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            {% if payment.status == 'PENDING' %}
+                <a href="{% url 'payment_complete' payment.id %}" 
+                   class="btn btn-primary" 
+                   style="text-decoration: none;"
+                   onclick="return confirm('Confirmer que ce paiement est complété?');">
+                    <i class="fas fa-check-circle"></i> Marquer comme complété
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.detail-header h1 {
+    margin: 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.info-item i {
+    font-size: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.info-item strong {
+    display: block;
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.header-with-back {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

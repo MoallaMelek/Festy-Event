@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Facture {{ invoice.invoice_number }}</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            border-bottom: 3px solid #fb923c;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .invoice-title {
+            color: #fb923c;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .info-box {
+            border: 1px solid #e5e7eb;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        .info-box h3 {
+            color: #fb923c;
+            margin-top: 0;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background: #fb923c;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .totals {
+            margin-top: 30px;
+            text-align: right;
+        }
+        .totals table {
+            width: 300px;
+            margin-left: auto;
+        }
+        .total-row {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fb923c;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .qr-section {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-issued {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fb923c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="window.print()" class="print-button no-print">
+        📄 Imprimer / Sauver PDF
+    </button>
+    
+    <!-- En-tête -->
+    <div class="header">
+        <table style="width: 100%; border: none;">
+            <tr>
+                <td style="width: 50%; border: none;">
+                    <h1 class="invoice-title">FACTURE</h1>
+                    <p style="margin: 0; color: #6b7280;">{{ invoice.invoice_number }}</p>
+                    <p style="margin: 5px 0 0 0; color: #6b7280;">
+                        Date: {{ invoice.issued_date|date:"d/m/Y" }}
+                    </p>
+                </td>
+                <td style="width: 50%; text-align: right; border: none;">
+                    <div class="company-info">
+                        <h2 style="color: #fb923c; margin: 0;">{{ company_name }}</h2>
+                        <p style="margin: 5px 0; color: #6b7280;">{{ company_address }}</p>
+                        <p style="margin: 5px 0; color: #6b7280;">Tél: {{ company_phone }}</p>
+                        <p style="margin: 5px 0; color: #6b7280;">{{ company_email }}</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Statut -->
+    <div style="text-align: right; margin-bottom: 20px;">
+        {% if invoice.status == 'PAID' %}
+            <span class="status-badge status-paid">✓ PAYÉE</span>
+        {% elif invoice.status == 'ISSUED' %}
+            <span class="status-badge status-issued">EN ATTENTE</span>
+        {% endif %}
+    </div>
+
+    <!-- Informations Client et Événement -->
+    <div class="info-grid">
+        <div class="info-box">
+            <h3>FACTURÉ À</h3>
+            <p style="margin: 5px 0; font-weight: bold;">{{ user.get_full_name|default:user.username }}</p>
+            <p style="margin: 5px 0; color: #6b7280;">{{ user.email }}</p>
+            {% if user.profile.phone %}
+            <p style="margin: 5px 0; color: #6b7280;">Tél: {{ user.profile.phone }}</p>
+            {% endif %}
+        </div>
+
+        <div class="info-box">
+            <h3>DÉTAILS ÉVÉNEMENT</h3>
+            <p style="margin: 5px 0; font-weight: bold;">{{ event.title }}</p>
+            <p style="margin: 5px 0; color: #6b7280;">
+                <strong>Date:</strong> {{ event.date|date:"d/m/Y à H:i" }}
+            </p>
+            <p style="margin: 5px 0; color: #6b7280;">
+                <strong>Lieu:</strong> {{ event.location }}
+            </p>
+            <p style="margin: 5px 0; color: #6b7280;">
+                <strong>Places:</strong> {{ reservation.number_of_seats }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Détails de la facture -->
+    <h3 style="color: #fb923c; margin-top: 40px;">DÉTAIL DE LA FACTURE</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="text-align: center;">Quantité</th>
+                <th style="text-align: right;">Prix unitaire</th>
+                <th style="text-align: right;">Montant HT</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>Réservation: {{ event.title }}</strong><br>
+                    <small style="color: #6b7280;">Code: {{ reservation.reservation_code }}</small>
+                </td>
+                <td style="text-align: center;">{{ reservation.number_of_seats }}</td>
+                <td style="text-align: right;">{{ event.price_per_person }} TND</td>
+                <td style="text-align: right;"><strong>{{ reservation.total_price }} TND</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Totaux -->
+    <div class="totals">
+        <table>
+            <tr>
+                <td style="border: none;"><strong>Montant HT</strong></td>
+                <td style="text-align: right; border: none;">{{ reservation.total_price }} TND</td>
+            </tr>
+            <tr>
+                <td style="border: none;"><strong>TVA (19%)</strong></td>
+                <td style="text-align: right; border: none;">{{ invoice.tax_amount }} TND</td>
+            </tr>
+            {% if invoice.discount_amount > 0 %}
+            <tr>
+                <td style="border: none; color: #10b981;"><strong>Remise</strong></td>
+                <td style="text-align: right; border: none; color: #10b981;">-{{ invoice.discount_amount }} TND</td>
+            </tr>
+            {% endif %}
+            <tr class="total-row">
+                <td style="border-top: 2px solid #fb923c; padding-top: 10px;"><strong>TOTAL TTC</strong></td>
+                <td style="text-align: right; border-top: 2px solid #fb923c; padding-top: 10px;">
+                    <strong>{{ invoice.total_amount }} TND</strong>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    {% if invoice.status != 'PAID' %}
+    <!-- QR Code de paiement -->
+    <div class="qr-section">
+        <h3 style="color: #fb923c; margin-top: 0;">PAYER AVEC QR CODE</h3>
+        <img src="{{ qr_code }}" alt="QR Code" style="width: 150px; height: 150px;"/>
+        <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 12px;">
+            Scannez ce code QR pour payer en ligne
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Notes -->
+    {% if invoice.notes %}
+    <div style="margin-top: 30px; padding: 15px; background: #f9fafb; border-left: 4px solid #fb923c;">
+        <h4 style="margin: 0 0 10px 0; color: #fb923c;">Notes</h4>
+        <p style="margin: 0; color: #6b7280;">{{ invoice.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Pied de page -->
+    <div class="footer">
+        <p><strong>Festy Event</strong> - Votre partenaire événementiel en Tunisie</p>
+        <p>Merci pour votre confiance !</p>
+        <p style="font-size: 10px; margin-top: 20px;">
+            Cette facture est générée électroniquement et ne nécessite pas de signature.<br>
+            TVA: TN123456789 | RNE: 123456ABC
+        </p>
+    </div>
+</body>
+</html>

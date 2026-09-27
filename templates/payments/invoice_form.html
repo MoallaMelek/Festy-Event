@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer une Facture - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'admin_invoice_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour aux factures
+    </a>
+</div>
+
+<div class="form-container">
+    <h1 style="text-align: center; margin-bottom: 2rem;">
+        <i class="fas fa-file-invoice"></i> Créer une Facture
+    </h1>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.reservation.id_for_label }}">
+                <i class="fas fa-ticket-alt"></i> Réservation <span style="color: #e74c3c;">*</span>
+            </label>
+            {{ form.reservation }}
+            {% if form.reservation.errors %}
+                <div class="error-message">
+                    {% for error in form.reservation.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.total_amount.id_for_label }}">
+                <i class="fas fa-coins"></i> Montant total (TND) <span style="color: #e74c3c;">*</span>
+            </label>
+            {{ form.total_amount }}
+            {% if form.total_amount.errors %}
+                <div class="error-message">
+                    {% for error in form.total_amount.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.tax_amount.id_for_label }}">
+                <i class="fas fa-percent"></i> TVA (TND)
+            </label>
+            {{ form.tax_amount }}
+            {% if form.tax_amount.errors %}
+                <div class="error-message">
+                    {% for error in form.tax_amount.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: var(--text-gray); margin-top: 0.25rem; display: block;">
+                TVA 19% en Tunisie
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.discount_amount.id_for_label }}">
+                <i class="fas fa-tag"></i> Remise (TND)
+            </label>
+            {{ form.discount_amount }}
+            {% if form.discount_amount.errors %}
+                <div class="error-message">
+                    {% for error in form.discount_amount.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.due_date.id_for_label }}">
+                <i class="fas fa-calendar"></i> Date d'échéance
+            </label>
+            {{ form.due_date }}
+            {% if form.due_date.errors %}
+                <div class="error-message">
+                    {% for error in form.due_date.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.notes.id_for_label }}">
+                <i class="fas fa-sticky-note"></i> Notes
+            </label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+                <div class="error-message">
+                    {% for error in form.notes.errors %}
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group" style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-save"></i> Créer la facture
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-with-back {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

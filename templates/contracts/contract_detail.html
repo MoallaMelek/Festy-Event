@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ contract.title }} - Admin - Festy Event{% endblock %}
+
+{% block content %}
+<div class="header-with-back">
+    <a href="{% url 'contract_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour aux contrats
+    </a>
+</div>
+
+<div class="detail-container">
+    <div class="detail-header">
+        <h1>
+            <i class="fas fa-file-contract"></i> {{ contract.title }}
+        </h1>
+        <span class="badge" style="background: {% if contract.status == 'ACTIVE' %}#10b981{% elif contract.status == 'COMPLETED' %}#3b82f6{% elif contract.status == 'CANCELLED' %}#e74c3c{% else %}#6b7280{% endif %}; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600;">
+            {{ contract.get_status_display }}
+        </span>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-info-circle"></i> Informations générales
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-hashtag" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Numéro de contrat</strong>
+                    <p>{{ contract.contract_number }}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-tag" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Type</strong>
+                    <p>{{ contract.get_contract_type_display }}</p>
+                </div>
+            </div>
+
+            {% if contract.event %}
+            <div class="info-item">
+                <i class="fas fa-calendar-alt" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Événement</strong>
+                    <p>
+                        <a href="{% url 'event_detail' contract.event.id %}" style="color: var(--primary-orange); text-decoration: none;">
+                            {{ contract.event.title }}
+                        </a>
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if contract.amount %}
+            <div class="info-item">
+                <i class="fas fa-coins" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Montant</strong>
+                    <p style="font-size: 1.2rem; color: #10b981;">{{ contract.amount|floatformat:3 }} TND</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-calendar"></i> Dates
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-calendar-check" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Date de début</strong>
+                    <p>{{ contract.start_date|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+
+            {% if contract.end_date %}
+            <div class="info-item">
+                <i class="fas fa-calendar-times" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Date de fin</strong>
+                    <p>{{ contract.end_date|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if contract.activated_at %}
+            <div class="info-item">
+                <i class="fas fa-play-circle" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Activé le</strong>
+                    <p>{{ contract.activated_at|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if contract.signed_date %}
+            <div class="info-item">
+                <i class="fas fa-pen-fancy" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Signé le</strong>
+                    <p>{{ contract.signed_date|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-user"></i> Informations client
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-user-circle" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Nom</strong>
+                    <p>{{ contract.client_name }}</p>
+                </div>
+            </div>
+            
+            <div class="info-item">
+                <i class="fas fa-envelope" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Email</strong>
+                    <p>{{ contract.client_email }}</p>
+                </div>
+            </div>
+            
+            {% if contract.client_phone %}
+            <div class="info-item">
+                <i class="fas fa-phone" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Téléphone</strong>
+                    <p>{{ contract.client_phone }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if contract.client_address %}
+            <div class="info-item" style="grid-column: 1 / -1;">
+                <i class="fas fa-map-marker-alt" style="color: var(--primary-orange);"></i>
+                <div>
+                    <strong>Adresse</strong>
+                    <p>{{ contract.client_address }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-file-alt"></i> Termes et conditions
+        </h2>
+        <p style="line-height: 1.6; white-space: pre-wrap;">{{ contract.terms }}</p>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem; background: #f8fafc;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-signature"></i> Signatures
+        </h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div>
+                <h3 style="margin-bottom: 0.5rem;">Signature Client</h3>
+                {% if contract.client_signature %}
+                    <div style="border: 2px solid #10b981; padding: 1rem; border-radius: 8px; background: white;">
+                        <img src="{{ contract.client_signature }}" alt="Signature client" style="max-width: 100%; height: auto;">
+                        <p style="margin-top: 0.5rem; color: var(--text-gray); font-size: 0.9rem;">
+                            <i class="fas fa-check-circle" style="color: #10b981;"></i> Signé {% if contract.signed_date %}le {{ contract.signed_date|date:"d/m/Y à H:i" }}{% endif %}
+                        </p>
+                    </div>
+                {% else %}
+                    <div style="border: 2px dashed #d1d5db; padding: 1.5rem; border-radius: 8px; text-align: center;">
+                        <i class="fas fa-pen" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem;"></i>
+                        <p style="color: var(--text-gray);">En attente de signature</p>
+                        {% if contract.status == 'DRAFT' or contract.status == 'ACTIVE' or contract.status == 'PENDING' %}
+                        <a href="{% url 'contract_sign' contract.id %}" class="btn btn-primary" style="text-decoration: none; display: inline-block; margin-top: 0.5rem;">
+                            <i class="fas fa-signature"></i> Signer
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 0.5rem;">Signature Admin</h3>
+                {% if contract.admin_signature %}
+                    <div style="border: 2px solid #10b981; padding: 1rem; border-radius: 8px; background: white;">
+                        <img src="{{ contract.admin_signature }}" alt="Signature admin" style="max-width: 100%; height: auto;">
+                        <p style="margin-top: 0.5rem; color: var(--text-gray); font-size: 0.9rem;">
+                            <i class="fas fa-check-circle" style="color: #10b981;"></i> Signé {% if contract.signed_date %}le {{ contract.signed_date|date:"d/m/Y à H:i" }}{% endif %}
+                        </p>
+                    </div>
+                {% else %}
+                    <div style="border: 2px dashed #d1d5db; padding: 1.5rem; border-radius: 8px; text-align: center;">
+                        <i class="fas fa-pen" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem;"></i>
+                        <p style="color: var(--text-gray);">En attente de signature</p>
+                        {% if contract.status == 'DRAFT' or contract.status == 'ACTIVE' or contract.status == 'PENDING' %}
+                        <a href="{% url 'contract_admin_sign' contract.id %}" class="btn btn-primary" style="text-decoration: none; display: inline-block; margin-top: 0.5rem;">
+                            <i class="fas fa-signature"></i> Signer
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="background: #f8fafc;">
+        <h2 style="margin-bottom: 1rem; color: var(--primary-orange);">
+            <i class="fas fa-tools"></i> Actions
+        </h2>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            {% if contract.status == 'DRAFT' %}
+                <a href="{% url 'contract_update' contract.id %}" 
+                   class="btn btn-primary" 
+                   style="text-decoration: none;">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+                <form method="post" action="{% url 'contract_activate' contract.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="btn" 
+                            style="background: #10b981; color: white;"
+                            onclick="return confirm('Activer ce contrat?');">
+                        <i class="fas fa-play-circle"></i> Activer
+                    </button>
+                </form>
+            {% endif %}
+            
+            {% if contract.status == 'ACTIVE' %}
+                <form method="post" action="{% url 'contract_complete' contract.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="btn" 
+                            style="background: #3b82f6; color: white;"
+                            onclick="return confirm('Marquer ce contrat comme terminé?');">
+                        <i class="fas fa-flag-checkered"></i> Marquer terminé
+                    </button>
+                </form>
+            {% endif %}
+            
+            {% if contract.status == 'DRAFT' or contract.status == 'PENDING' or contract.status == 'ACTIVE' %}
+                <form method="post" action="{% url 'contract_cancel' contract.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="btn" 
+                            style="background: #e74c3c; color: white;"
+                            onclick="return confirm('Annuler ce contrat? Cette action est irréversible.');">
+                        <i class="fas fa-ban"></i> Annuler
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.detail-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.detail-header h1 {
+    margin: 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.info-item i {
+    font-size: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.info-item strong {
+    display: block;
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.header-with-back {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

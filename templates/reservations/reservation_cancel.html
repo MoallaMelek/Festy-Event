@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Annuler Réservation - Festy Event{% endblock %}
+
+{% block content %}
+<a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-secondary" style="margin-bottom: 2rem;">
+    ← Retour aux détails
+</a>
+
+<div class="card">
+    <h1 style="color: #f44336;"> Annuler la réservation</h1>
+    
+    <div class="alert alert-warning" style="margin: 1.5rem 0;">
+        <strong>Attention !</strong> Cette action est irréversible. Une fois annulée, vous devrez créer une nouvelle réservation pour participer à cet événement.
+    </div>
+
+    <div style="background-color: var(--secondary-black); padding: 1rem; border-radius: 5px; margin: 1.5rem 0; border-left: 3px solid #f44336;">
+        <h3 style="color: var(--text-white);">Détails de la réservation à annuler:</h3>
+        <p style="color: var(--text-white);"><strong>Code:</strong> {{ reservation.reservation_code }}</p>
+        <p style="color: var(--text-white);"><strong>Événement:</strong> {{ reservation.event.title }}</p>
+        <p style="color: var(--text-white);"><strong>Date:</strong> {{ reservation.event.date|date:"d/m/Y à H:i" }}</p>
+        <p style="color: var(--text-white);"><strong>Lieu:</strong> {{ reservation.event.location }}</p>
+        <p style="color: var(--text-white);"><strong>Nombre de places:</strong> {{ reservation.number_of_seats }}</p>
+        <p style="color: var(--text-white);"><strong>Prix total:</strong> {{ reservation.total_price }} TND</p>
+    </div>
+
+    <div style="background-color: rgba(76, 175, 80, 0.1); padding: 1rem; border-radius: 5px; margin: 1.5rem 0; border-left: 3px solid #4caf50;">
+        <h3 style="color: var(--text-white);"> Après l'annulation:</h3>
+        <ul style="margin-left: 1.5rem; color: var(--text-gray);">
+            <li>Vos {{ reservation.number_of_seats }} place(s) seront libérées</li>
+            <li>La réservation passera au statut "Annulée"</li>
+            <li>Vous recevrez une confirmation par email</li>
+            <li>Les places seront à nouveau disponibles pour d'autres participants</li>
+        </ul>
+    </div>
+
+    {% if reservation.can_be_cancelled %}
+        <form method="post">
+            {% csrf_token %}
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-secondary" style="flex: 1; text-align: center;">
+                    Non, garder ma réservation
+                </a>
+                <button type="submit" class="btn btn-danger" style="flex: 1;">
+                     Oui, annuler définitivement
+                </button>
+            </div>
+        </form>
+    {% else %}
+        <div class="alert alert-error" style="margin-top: 2rem;">
+             Cette réservation ne peut plus être annulée (événement passé ou déjà annulée).
+        </div>
+        <a href="{% url 'reservation_list' %}" class="btn btn-secondary" style="margin-top: 1rem; display: inline-block;">
+            Retour à mes réservations
+        </a>
+    {% endif %}
+</div>
+{% endblock %}

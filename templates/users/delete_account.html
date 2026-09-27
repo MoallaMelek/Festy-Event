@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer mon compte - Festy Event{% endblock %}
+
+{% block content %}
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 3rem auto;
+        padding: 0 1rem;
+    }
+    
+    .delete-card {
+        background: var(--secondary-black);
+        border: 2px solid var(--error-red);
+        border-radius: 10px;
+        padding: 2.5rem;
+    }
+    
+    .delete-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .delete-header h1 {
+        color: var(--error-red);
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .warning-box {
+        background: rgba(244, 67, 54, 0.1);
+        border-left: 4px solid var(--error-red);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 5px;
+    }
+    
+    .warning-box h3 {
+        color: var(--error-red);
+        margin-bottom: 1rem;
+    }
+    
+    .warning-box ul {
+        margin-left: 1.5rem;
+        color: var(--text-white);
+    }
+    
+    .warning-box li {
+        margin: 0.5rem 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-white);
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--primary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 5px;
+        color: var(--text-white);
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--error-red);
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: var(--primary-black);
+        border: 1px solid var(--border-gray);
+        border-radius: 5px;
+    }
+    
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .form-check-label {
+        color: var(--text-white);
+        cursor: pointer;
+        margin: 0;
+    }
+    
+    .error-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 0 0;
+    }
+    
+    .error-list li {
+        color: var(--error-red);
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+</style>
+
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="delete-header">
+            <h1> Supprimer mon compte</h1>
+            <p style="color: var(--text-gray);">Cette action est irréversible</p>
+        </div>
+        
+        <div class="warning-box">
+            <h3>Attention !</h3>
+            <p>La suppression de votre compte entraînera :</p>
+            <ul>
+                <li>La suppression définitive de toutes vos données personnelles</li>
+                <li>L'annulation automatique de toutes vos réservations actives ({{ active_reservations }})</li>
+                <li>La perte d'accès à votre historique de réservations</li>
+                <li>L'impossibilité de récupérer votre compte</li>
+            </ul>
+        </div>
+        
+        {% if active_reservations > 0 %}
+            <div class="alert alert-warning" style="margin-bottom: 2rem;">
+                <strong>Vous avez {{ active_reservations }} réservation(s) active(s).</strong><br>
+                Elles seront automatiquement annulées et les places seront libérées.
+            </div>
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <div class="form-check">
+                    {{ form.confirm }}
+                    <label for="{{ form.confirm.id_for_label }}" class="form-check-label">
+                        {{ form.confirm.label }}
+                    </label>
+                </div>
+                {% if form.confirm.errors %}
+                    <ul class="error-list">
+                        {% for error in form.confirm.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <ul class="error-list">
+                        {% for error in form.password.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div style="display: flex; gap: 1rem;">
+                <a href="{% url 'users:profile' %}" class="btn btn-secondary" style="flex: 1; text-align: center;">
+                    Non, annuler
+                </a>
+                <button type="submit" class="btn btn-danger" style="flex: 1;">
+                    Oui, supprimer mon compte
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

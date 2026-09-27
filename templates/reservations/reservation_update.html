@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier Réservation - Festy Event{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
+    <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-arrow-left"></i> Retour aux détails
+    </a>
+    <a href="{% url 'reservation_list' %}" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-list"></i> Mes réservations
+    </a>
+</div>
+
+<div class="card">
+    <h1>✏️ Modifier la réservation</h1>
+    
+    <div class="info-box">
+        <p><strong>Code:</strong> {{ reservation.reservation_code }}</p>
+        <p><strong>Événement:</strong> {{ reservation.event.title }}</p>
+        <p><strong>Date:</strong> {{ reservation.event.date|date:"d/m/Y à H:i" }}</p>
+        <p><strong>Prix par place:</strong> {{ reservation.event.price_per_person }} TND</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="number_of_seats">Nombre de places *</label>
+            <input 
+                type="number" 
+                id="number_of_seats" 
+                name="number_of_seats" 
+                class="form-control" 
+                min="1" 
+                max="{{ reservation.number_of_seats|add:reservation.event.available_seats }}" 
+                value="{{ reservation.number_of_seats }}" 
+                required
+                oninput="updateTotal()"
+            >
+            <small style="color: #b0b0b0;">
+                Actuellement: {{ reservation.number_of_seats }} place(s) | 
+                Places disponibles en plus: {{ reservation.event.available_seats }}
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label>Nouveau prix total</label>
+            <div style="background-color: #ff6b35; color: #1a1a1a; padding: 1rem; border-radius: 5px; font-size: 1.5rem; font-weight: bold; text-align: center;">
+                <span id="total-price">{{ reservation.total_price }}</span> TND
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes (optionnel)</label>
+            <textarea 
+                id="notes" 
+                name="notes" 
+                class="form-control" 
+                placeholder="Informations supplémentaires..."
+            >{{ reservation.notes }}</textarea>
+        </div>
+
+        <div class="alert alert-info">
+            ℹ️ Les modifications peuvent affecter le prix total et la disponibilité des places.
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-secondary" style="flex: 1; text-align: center;">
+                Annuler
+            </a>
+            <button type="submit" class="btn btn-primary" style="flex: 2;">
+                 Enregistrer les modifications
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function updateTotal() {
+    const seats = document.getElementById('number_of_seats').value;
+    const pricePerPerson = {{ reservation.event.price_per_person }};
+    const total = seats * pricePerPerson;
+    document.getElementById('total-price').textContent = total.toFixed(2);
+}
+</script>
+{% endblock %}

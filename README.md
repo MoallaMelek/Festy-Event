@@ -202,7 +202,7 @@ sequenceDiagram
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/MelekCreed/Festy-Event.git
+git clone https://github.com/MoallaMelek/Festy-Event.git
 cd Festy-Event
 python -m venv .venv
 # Windows: .venv\Scripts\activate    macOS/Linux: source .venv/bin/activate
@@ -308,4 +308,4 @@ The complete URL map is documented in [docs/GUIDE_URLS_COMPLETE.md](docs/GUIDE_U
 
 ## 👤 Author
 
-**Melek Moalla** — [@MelekCreed](https://github.com/MelekCreed)
+**Melek Moalla** — [@MoallaMelek](https://github.com/MoallaMelek)
